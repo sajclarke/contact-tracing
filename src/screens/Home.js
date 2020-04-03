@@ -66,7 +66,7 @@ const Dashboard = (props) => {
 
     // setOrderList([])
     const db = firebase.firestore();
-    const data = await db.collection('cases').get();
+    const data = await db.collection('cases').orderBy('dateAdded', 'desc').get();
     // console.log(data)
     setItems(data.docs.map(doc => ({ ...doc.data(), id: doc.id })));
 
@@ -188,7 +188,8 @@ const Dashboard = (props) => {
       {
         Header: "Symptoms",
         accessor: "case_symptoms",
-        Cell: (row, data) => <ul>{row.row.original.case_symptoms.map(item => <li>{item.label},</li>)}</ul>,
+        // Cell: (row, data) => <ul>{row.row.original.case_symptoms.map(item => <li>{item.label},</li>)}</ul>,
+        Cell: (row, data) => { return (row.row.original.case_symptoms.length > 0 ? <ul>{row.row.original.case_symptoms.map(item => <li>{item.label},</li>)}</ul> : <span></span>) },
         filterMethod: (filter, row) =>
           row[filter.id].startsWith(filter.value) &&
           row[filter.id].endsWith(filter.value)
@@ -210,9 +211,14 @@ const Dashboard = (props) => {
           row[filter.id].endsWith(filter.value)
       },
       {
-        Header: "Countries",
+        Header: "Visited",
         accessor: "case_country",
-        Cell: (row, data) => <ul>{row.row.original.case_country.map(item => <li>{item.label},</li>)}</ul>,
+        // Cell: (row, data) => {
+        //   return {
+        //     row.row.original.case_country.length > 0 ? <ul>{row.row.original.case_country.map(item => <li>{item.label},</li>)}</ul> : <span></span>
+        //   }
+        // },
+        Cell: (row, data) => { return (row.row.original.case_country.length > 0 ? <ul>{row.row.original.case_country.map(item => <li>{item.label},</li>)}</ul> : <span></span>) },
         // width: 200,
         filterMethod: (filter, row) =>
           row[filter.id].startsWith(filter.value) &&
@@ -241,8 +247,8 @@ const Dashboard = (props) => {
           row[filter.id].endsWith(filter.value)
       },
       {
-        Header: "Outcome",
-        accessor: "case_status",
+        Header: "Isolation",
+        accessor: "case_isolation_center",
         filterMethod: (filter, row) =>
           row[filter.id].startsWith(filter.value) &&
           row[filter.id].endsWith(filter.value)

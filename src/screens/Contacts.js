@@ -298,7 +298,8 @@ const Contacts = (props) => {
                 <h2 class="text-md pt-3 font-semibold text-gray-800">Countries Visited</h2>
                 <p class="text-sm text-gray-700">{caseInfo.case_country && caseInfo.case_country.map(item => (<span>{item.label}, </span>))}</p>
                 <h2 class="text-md pt-3 font-semibold text-gray-800">Symptoms</h2>
-                <p class="text-sm text-gray-700">{caseInfo.case_symptoms}</p>
+                <p class="text-sm text-gray-700">{caseInfo.case_symptoms && caseInfo.case_symptoms.map(item => (<span>{item.label}, </span>))}</p>
+                {/* <p class="text-sm text-gray-700">{caseInfo.case_symptoms}</p> */}
 
                 <h2 class="text-md pt-3 font-semibold text-gray-800">Gender</h2>
                 <p class="text-sm text-gray-700">{caseInfo.case_gender}</p>
@@ -313,7 +314,7 @@ const Contacts = (props) => {
                 <h2 class="text-md pt-3 font-semibold text-gray-800">Address</h2>
                 <p class="text-sm text-gray-700">{caseInfo.case_address}</p>
                 <h2 class="text-md pt-3 font-semibold text-gray-800">Conditions</h2>
-                <p class="text-sm text-gray-700">{caseInfo.case_conditions}</p>
+                <p class="text-sm text-gray-700">{caseInfo.case_conditions && caseInfo.case_conditions.map(item => (<span>{item.label}, </span>))}</p>
                 <h2 class="text-md pt-3 font-semibold text-gray-800">Notes</h2>
                 <p class="text-sm text-gray-700">{caseInfo.case_notes}</p>
 
