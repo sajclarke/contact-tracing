@@ -35,6 +35,7 @@ const validationSchema = yup.object().shape({
     case_symptom_date: yup.string(),
     case_quarantine_location: yup.string(),
     case_birthdate: yup.string(),
+    case_releasedate: yup.string(),
     // case_birthdate: yup.date().typeError('Invalid date'),
     case_gender: yup.string().required('Gender is required'),
     case_home_number: yup.string(),
@@ -74,7 +75,7 @@ const CaseForm = (props) => {
     ]
 
     const symptoms = [
-        'none', 'fever', 'sore throat', 'shortness of breath', 'cough', 'loss of taste', 'loss of smell', 'body ache', 'malaise', 'headache', 'diarrhea', 'nausea', 'vomiting', 'abdominal pain'
+        'none', 'fever', 'sore throat', 'muscle pain/muscle aches', 'shortness of breath', 'cough', 'loss of taste', 'loss of smell', 'loss of appetite', 'body ache', 'malaise', 'headache', 'diarrhea', 'nausea', 'vomiting', 'abdominal pain'
     ]
     const cormorbidities = [
         'none', 'asthma/COPD', 'cancer', 'diabetes', 'HIV', 'hypertension', 'obesity', 'cardiovascular disease', 'substance abuse', 'pneumonia', 'auto-immune disease'
@@ -106,6 +107,7 @@ const CaseForm = (props) => {
         case_exposure_location: '',
         case_exposure_date: '',
         case_symptoms: '',
+        case_current_condition: '',
         case_symptom_date: '',
         case_quarantine_location: '',
         case_quarantine_period: '',
@@ -168,6 +170,20 @@ const CaseForm = (props) => {
 
 
     }
+
+    // const handleDeceasedChecked = () => {
+    //     console.log(indexChecked)
+    //     toggleIndexChecked(!indexChecked)
+    //     console.log(indexChecked)
+    //     if (!indexChecked) {
+    //         console.log('checked')
+    //         // setItems(items.filter((item) => item.case_indexId === 0))
+    //     } else {
+    //         // setItems(items)
+    //     }
+
+
+    // }
     console.log(values)
     return (
 
@@ -192,7 +208,7 @@ const CaseForm = (props) => {
             <div className='text-left'>
                 <form className="w-full max-w-lg">
                     <div className="flex flex-wrap -mx-3 mb-6">
-                        <div className="w-full px-3 mb-3 md:mb-0">
+                        <div className="w-2/4 px-3 mb-3 md:mb-0">
                             <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">
                                 Name
                             </label>
@@ -206,25 +222,6 @@ const CaseForm = (props) => {
                                 style={{ transition: "all .15s ease" }}
                             />
                             {errors.case_name && (<p className="text-red-500 text-xs italic">{errors.case_name}</p>)}
-                        </div>
-
-                    </div>
-
-                    {/* {props.editing && ( */}
-                    <div className="flex flex-wrap mt-2 mb-6">
-                        <div className="w-full md:w-1/2 px-3 mb-6 md:mb-0">
-                            <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="grid-state">
-                                Status/Outcome
-                                </label>
-                            <div className="relative">
-                                <select name="case_status" value={values.case_status} onChange={e => handleChange(e)} className="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500" >
-                                    <option value=''>--Select One--</option>
-                                    <option>pending</option>
-                                    <option>positive</option>
-                                    <option>negative</option>
-                                </select>
-                            </div>
-                            {errors.case_status && (<p className="text-red-500 text-xs italic">{errors.case_status}</p>)}
                         </div>
                         <div className="w-full md:w-1/2 px-3 mb-6 md:mb-0">
                             <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="grid-state">
@@ -243,6 +240,77 @@ const CaseForm = (props) => {
 
                             {errors.case_gender && (<p className="text-red-500 text-xs italic">{errors.case_gender}</p>)}
                         </div>
+
+
+                    </div>
+                    <div className="flex flex-wrap -mx-3 mb-2">
+                        <div className="w-full px-2">
+                            <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="grid-password">
+                                What Symptoms do they have?
+                            </label>
+                            {/* <textarea name="case_symptoms" value={values.case_symptoms} onChange={e => handleChange(e)} className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" placeholder="Do they have existing conditions?" rows="3"></textarea> */}
+                            {/* <select name="case_symptoms" value={values.case_symptoms} onChange={e => handleChange(e)} className="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500" >
+                                <option>--Select One--</option>
+                                {symptoms.map((item) => <option>{item}</option>)}
+                            </select> */}
+                            <CreatableSelect
+                                isMulti
+                                name="case_symptoms"
+                                placeholder="Select from options or type ..."
+                                options={arr_symptoms}
+                                value={values.case_symptoms}
+                                onChange={value => setValues({
+                                    ...values,
+                                    'case_symptoms': value
+                                })}
+                            />
+                            {errors.case_symptoms && (<p className="text-red-500 text-xs italic">{errors.case_symptoms}</p>)}
+                        </div>
+                    </div>
+
+                    <div className="flex flex-wrap -mx-3 mb-2">
+                        <div className="w-full px-2">
+                            <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="grid-password">
+                                Address
+                            </label>
+                            <textarea name="case_address" value={values.case_address} onChange={e => handleChange(e)} className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" placeholder="Where are they residing locally?" rows="3"></textarea>
+                            {errors.case_address && (<p className="text-red-500 text-xs italic">{errors.case_address}</p>)}
+                        </div>
+                    </div>
+
+                    {/* {props.editing && ( */}
+                    <div className="flex flex-wrap mt-2 mb-6">
+                        <div className="w-full md:w-1/2 px-3 mb-6 md:mb-0">
+                            <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="grid-state">
+                                Test Results
+                                </label>
+                            <div className="relative">
+                                <select name="case_status" value={values.case_status} onChange={e => handleChange(e)} className="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500" >
+                                    <option value=''>--Select One--</option>
+                                    <option>pending</option>
+                                    <option>positive</option>
+                                    <option>negative</option>
+                                </select>
+                            </div>
+                            {errors.case_status && (<p className="text-red-500 text-xs italic">{errors.case_status}</p>)}
+                        </div>
+                        <div class="w-full md:w-2/4 px-3 mb-3 md:mb-0">
+                            <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">
+                                Condition
+                            </label>
+                            <div className="relative">
+                                <select name="case_current_condition" value={values.case_current_condition} onChange={e => handleChange(e)} className="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"  >
+                                    <option value=''>--Select One--</option>
+                                    <option>Deceased</option>
+                                    <option>Stable</option>
+                                    <option>Critical</option>
+                                </select>
+                                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                                    <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                     {/* )} */}
 
@@ -317,30 +385,7 @@ const CaseForm = (props) => {
                         </div>
 
                     </div>
-                    <div className="flex flex-wrap -mx-3 mb-2">
-                        <div className="w-full px-2">
-                            <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="grid-password">
-                                What Symptoms do they have?
-                            </label>
-                            {/* <textarea name="case_symptoms" value={values.case_symptoms} onChange={e => handleChange(e)} className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" placeholder="Do they have existing conditions?" rows="3"></textarea> */}
-                            {/* <select name="case_symptoms" value={values.case_symptoms} onChange={e => handleChange(e)} className="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500" >
-                                <option>--Select One--</option>
-                                {symptoms.map((item) => <option>{item}</option>)}
-                            </select> */}
-                            <CreatableSelect
-                                isMulti
-                                name="case_symptoms"
-                                placeholder="Select from options or type ..."
-                                options={arr_symptoms}
-                                value={values.case_symptoms}
-                                onChange={value => setValues({
-                                    ...values,
-                                    'case_symptoms': value
-                                })}
-                            />
-                            {errors.case_symptoms && (<p className="text-red-500 text-xs italic">{errors.case_symptoms}</p>)}
-                        </div>
-                    </div>
+
                     <div className="flex flex-wrap my-2">
                         <div className="w-full md:w-1/2 px-3 mb-6 md:mb-0">
                             <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="grid-city">
@@ -528,15 +573,7 @@ const CaseForm = (props) => {
                             {errors.case_mobile_number && (<p className="text-red-500 text-xs italic">{errors.case_mobile_number}</p>)}
                         </div>
                     </div>
-                    <div className="flex flex-wrap -mx-3 mb-2">
-                        <div className="w-full px-2">
-                            <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="grid-password">
-                                Address
-                            </label>
-                            <textarea name="case_address" value={values.case_address} onChange={e => handleChange(e)} className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" placeholder="Where are they residing locally?" rows="3"></textarea>
-                            {errors.case_address && (<p className="text-red-500 text-xs italic">{errors.case_address}</p>)}
-                        </div>
-                    </div>
+
 
                     <div className="flex flex-wrap -mx-3 mb-2">
                         <div className="w-full px-2">
@@ -624,6 +661,31 @@ const CaseForm = (props) => {
                             <textarea name="case_notes" value={values.case_notes} onChange={e => handleChange(e)} className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" placeholder="Any additional notes?" rows="3"></textarea>
                             {errors.case_notes && (<p className="text-red-500 text-xs italic">{errors.case_notes}</p>)}
                         </div>
+                    </div>
+
+                    <div className="w-full px-2">
+                        <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="grid-city">
+                            Date of Release
+                        </label>
+                        {/* <InputMask mask="9999-99-99" name="case_birthdate" value={values.case_birthdate} onChange={e => handleChange(e)} className="block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" type="text" placeholder="YYYY-MM-DD" /> */}
+                        <Flatpickr
+                            // data-enable-time
+                            placeholder="YYYY-MM-DD"
+                            className="block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                            value={values.case_releasedate}
+                            // options={{ allowInput: true }}
+                            onClose={date => setValues(prevStyle => ({
+                                ...prevStyle,
+                                'case_releasedate': date.length > 0 ? format(date[0], 'yyyy-MM-dd') : ''
+                            }))}
+
+                            // options={{ maxDate: format(new Date(), 'yyyy-MM-dd') }}
+                            onChange={date => setValues(prevStyle => ({
+                                ...prevStyle,
+                                'case_releasedate': date.length > 0 ? format(date[0], 'yyyy-MM-dd') : ''
+                            }))}
+                        />
+                        {errors.case_releasedate && (<p className="text-red-500 text-xs italic">{errors.case_releasedate}</p>)}
                     </div>
 
                     {/* <div className="flex justify-end"> */}
