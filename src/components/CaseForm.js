@@ -1,5 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react'
-import { format, compareAsc, parse, differenceInCalendarYears, differenceInYears } from 'date-fns'
+import { format, compareAsc, parse, differenceInCalendarYears, differenceInYears, isValid } from 'date-fns'
+// import isValid from 'date-fns/is_valid'
 import InputMask from "react-input-mask";
 import 'react-phone-number-input/style.css'
 import PhoneInput from 'react-phone-number-input'
@@ -29,7 +30,7 @@ const validationSchema = yup.object().shape({
     // case_exposure_date: yup.date(),
     // case_exposure_date: yup.date().typeError('Invalid date').required('Exposure Date is required'),
     case_nationality: yup.string(),
-    case_country: yup.string().required('Country is required'),
+    case_country: yup.string(),
     case_symptoms: yup.string().required('Symptoms are required'),
     case_symptom_date: yup.string(),
     case_quarantine_location: yup.string(),
@@ -48,11 +49,13 @@ const validationSchema = yup.object().shape({
 const CaseForm = (props) => {
 
     let countryOptions = countryList().getData()
+
+    console.log(countryOptions)
     // console.log(props.caseData.case_name)
 
     const polyclinics = [
         'Winston Scott Polyclinic',
-        'Randall Philips Polyclinic',
+        'Randal Phillips Polyclinic',
         'Eunice Gibson Polyclinic',
         'Branford Taitt Polyclinic',
         'Edgar Cochrane Polyclinic',
@@ -71,10 +74,10 @@ const CaseForm = (props) => {
     ]
 
     const symptoms = [
-        'fever', 'sore throat', 'shortness of breath', 'cough', 'loss of taste', 'loss of smell', 'body ache', 'malaise', 'headache', 'diarrhea', 'nausea', 'vomitting', 'abdominal pain'
+        'none', 'fever', 'sore throat', 'shortness of breath', 'cough', 'loss of taste', 'loss of smell', 'body ache', 'malaise', 'headache', 'diarrhea', 'nausea', 'vomiting', 'abdominal pain'
     ]
     const cormorbidities = [
-        'none', 'asthma/COPD', 'cancer', 'diabetes', 'HIV', 'hypertension', 'obesity', 'cardiovascular disease', 'substance abuse'
+        'none', 'asthma/COPD', 'cancer', 'diabetes', 'HIV', 'hypertension', 'obesity', 'cardiovascular disease', 'substance abuse', 'pneumonia', 'auto-immune disease'
     ]
 
     let arr_symptoms = symptoms.map((item) => ({ value: item, label: item }))
@@ -97,7 +100,6 @@ const CaseForm = (props) => {
     }
 
     const defaultObj = {
-
         case_name: '',
         case_country: '',
         case_nationality: '',
@@ -109,6 +111,7 @@ const CaseForm = (props) => {
         case_quarantine_period: '',
         case_isolation_center: '',
         case_birthdate: '',
+        case_age: '',
         case_gender: '',
         case_home_number: '',
         case_mobile_number: '',
@@ -132,8 +135,8 @@ const CaseForm = (props) => {
 
 
     useEffect(() => {
-        console.log(props.caseData)
-        setValues(Object.entries(props.caseData).length > 0 ? props.caseData : testObj);
+        // console.log(props.caseData)
+        setValues(Object.entries(props.caseData).length > 0 ? props.caseData : defaultObj);
     }, [props]);
 
 
@@ -148,7 +151,7 @@ const CaseForm = (props) => {
         validate();
     }
 
-    const handleSaveProfile = () => {
+    const handleSubmit = () => {
         console.log('submit profile info', values)
         validate()
         console.log(Object.entries(errors).length, errors)
@@ -164,18 +167,6 @@ const CaseForm = (props) => {
         }
 
 
-        // const db = firebase.firestore();
-        // const ref = db.collection("customers").doc(currentUser.uid)
-        // try {
-        //     await ref.set(values)
-
-        //     setFormSuccess('Thanks your information has been successfully updated')
-
-        // } catch (error) {
-        //     // alert(error);
-        //     console.error(error)
-        //     setFormError('Sorry but we do not recognize that email/password combination. Please try again')
-        // }
     }
     console.log(values)
     return (
@@ -221,7 +212,7 @@ const CaseForm = (props) => {
 
                     {/* {props.editing && ( */}
                     <div className="flex flex-wrap mt-2 mb-6">
-                        <div className="w-full px-3 mb-6 md:mb-0">
+                        <div className="w-full md:w-1/2 px-3 mb-6 md:mb-0">
                             <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="grid-state">
                                 Status/Outcome
                                 </label>
@@ -229,12 +220,28 @@ const CaseForm = (props) => {
                                 <select name="case_status" value={values.case_status} onChange={e => handleChange(e)} className="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500" >
                                     <option value=''>--Select One--</option>
                                     <option>pending</option>
-                                    {/* <option>follow-up</option> */}
                                     <option>positive</option>
                                     <option>negative</option>
                                 </select>
                             </div>
                             {errors.case_status && (<p className="text-red-500 text-xs italic">{errors.case_status}</p>)}
+                        </div>
+                        <div className="w-full md:w-1/2 px-3 mb-6 md:mb-0">
+                            <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="grid-state">
+                                Gender
+                            </label>
+                            <div className="relative">
+                                <select name="case_gender" value={values.case_gender} onChange={e => handleChange(e)} className="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"  >
+                                    <option value=''>--Select One--</option>
+                                    <option>Male</option>
+                                    <option>Female</option>
+                                </select>
+                                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                                    <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
+                                </div>
+                            </div>
+
+                            {errors.case_gender && (<p className="text-red-500 text-xs italic">{errors.case_gender}</p>)}
                         </div>
                     </div>
                     {/* )} */}
@@ -297,7 +304,7 @@ const CaseForm = (props) => {
                                 isMulti
                                 name="case_country"
                                 placeholder="Select from options or type ..."
-                                options={countryOptions}
+                                options={[{ label: "None", value: "none" }, ...countryOptions]}
                                 value={values.case_country}
                                 onChange={value => setValues({
                                     ...values,
@@ -347,7 +354,7 @@ const CaseForm = (props) => {
                                 value={values.case_symptom_date}
                                 // maxDate={'2020-04-03'}
                                 // options={{ maxDate: format(new Date(), 'yyyy-MM-dd') }}
-                                options={{ mode: 'range', maxDate: 'today' }}
+                                options={{ mode: "single", maxDate: 'today' }}
                                 onChange={date => setValues(prevStyle => ({
                                     ...prevStyle,
                                     'case_symptom_date': date.length > 0 ? format(date[0], 'yyyy-MM-dd') : ''
@@ -362,7 +369,7 @@ const CaseForm = (props) => {
                             <div className="relative">
                                 <select name="case_isolation_center" value={values.case_isolation_center} onChange={e => handleChange(e)} className="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"  >
                                     <option value=''>--Select One--</option>
-                                    {isolation_centers.map((item) => <option>{item}</option>)}
+                                    {isolation_centers.map((item, index) => <option key={index}>{item}</option>)}
                                     {/* <option>Home</option>
                                     <option>Paragon</option>
                                     <option>No</option> */}
@@ -381,7 +388,7 @@ const CaseForm = (props) => {
                             <div className="relative">
                                 <select name="case_quarantine_location" value={values.case_quarantine_location} onChange={e => handleChange(e)} className="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"  >
                                     <option value=''>--Select One--</option>
-                                    {['Yes', 'No'].map((item) => <option>{item}</option>)}
+                                    {['Yes', 'No'].map((item, index) => <option key={index}>{item}</option>)}
                                     {/* <option>Home</option>
                                     <option>Paragon</option>
                                     <option>No</option> */}
@@ -405,7 +412,7 @@ const CaseForm = (props) => {
                                     value={values.case_quarantine_period}
                                     // maxDate={'2020-04-03'}
                                     // options={{ maxDate: format(new Date(), 'yyyy-MM-dd') }}
-                                    options={{ mode: 'range', maxDate: 'today' }}
+                                    options={{ mode: 'range' }}
                                     // onChange={date => { console.log(date[0], date[1]) }}
                                     onChange={date => setValues(prevStyle => ({
                                         ...prevStyle,
@@ -436,7 +443,14 @@ const CaseForm = (props) => {
                                     ...prevStyle,
                                     'case_birthdate': date.length > 0 ? format(date[0], 'yyyy-MM-dd') : ''
                                 }))}
-                                // onValueUpdate={data => console.log(data)}
+                                onValueUpdate={date => {
+                                    console.log(isValid(date[0]));
+                                    console.log(differenceInYears(new Date(), date[0]));
+                                    setValues(prevStyle => ({
+                                        ...prevStyle,
+                                        'case_age': isValid(date[0]) ? parseInt(differenceInYears(new Date(), date[0])) : ''
+                                    }))
+                                }}
                                 // options={{ maxDate: format(new Date(), 'yyyy-MM-dd') }}
                                 onChange={date => setValues(prevStyle => ({
                                     ...prevStyle,
@@ -447,9 +461,20 @@ const CaseForm = (props) => {
                         </div>
                         <div className="w-full md:w-1/2 px-3 mb-6 md:mb-0">
                             <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="grid-state">
-                                Gender
-                        </label>
-                            <div className="relative">
+                                Age
+                            </label>
+                            <input
+                                type="number"
+                                min="0"
+                                max="200"
+                                name="case_age"
+                                className="px-3 py-3 placeholder-gray-400 bg-gray-200 text-gray-700 bg-white rounded text-sm shadow focus:outline-none focus:shadow-outline w-full"
+                                placeholder="Enter age"
+                                value={values.case_age}
+                                onChange={e => handleChange(e)}
+                                style={{ transition: "all .15s ease" }}
+                            />
+                            {/* <div className="relative">
                                 <select name="case_gender" value={values.case_gender} onChange={e => handleChange(e)} className="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"  >
                                     <option value=''>--Select One--</option>
                                     <option>Male</option>
@@ -458,16 +483,16 @@ const CaseForm = (props) => {
                                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                                     <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
                                 </div>
-                            </div>
+                            </div> */}
 
-                            {errors.case_gender && (<p className="text-red-500 text-xs italic">{errors.case_gender}</p>)}
+                            {errors.case_age && (<p className="text-red-500 text-xs italic">{errors.case_age}</p>)}
                         </div>
                     </div>
                     <div className="flex flex-wrap my-2">
                         <div className="w-full px-3 my-6 md:mb-0">
                             <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="grid-city">
                                 Home Telephone
-                        </label>
+                            </label>
                             {/* <InputMask mask="(999) 999-9999" name="case_home_number" value={values.case_home_number} onChange={e => handleChange(e)} className="block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" type="text" placeholder="(246) 123-4567" /> */}
                             <PhoneInput
                                 name="case_home_number"
@@ -475,7 +500,7 @@ const CaseForm = (props) => {
                                 // onChange={e => console.log(e)}
                                 onChange={value => setValues({
                                     ...values,
-                                    'case_home_number': value
+                                    'case_home_number': value ? value : ''
                                 })}
                                 className="block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                                 type="text"
@@ -494,7 +519,7 @@ const CaseForm = (props) => {
                                 // onChange={e => console.log(e)}
                                 onChange={value => setValues({
                                     ...values,
-                                    'case_mobile_number': value
+                                    'case_mobile_number': value ? value : ''
                                 })}
                                 className="block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                                 type="text"
@@ -523,7 +548,7 @@ const CaseForm = (props) => {
                                 isMulti
                                 name="case_nationality"
                                 placeholder="Select from options or type ..."
-                                options={countryOptions}
+                                options={[{ label: "None", value: "none" }, ...countryOptions]}
                                 value={values.case_nationality}
                                 onChange={value => setValues({
                                     ...values,
@@ -559,7 +584,7 @@ const CaseForm = (props) => {
                             <div className="relative">
                                 <select name="case_catchment_area" value={values.case_catchment_area} onChange={e => handleChange(e)} className="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500" >
                                     <option value=''>--Select One--</option>
-                                    {polyclinics.map((item) => <option>{item}</option>)}
+                                    {polyclinics.map((item, index) => <option key={index}>{item}</option>)}
                                 </select>
                                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                                     <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
@@ -591,33 +616,6 @@ const CaseForm = (props) => {
                         </div>
                     </div>
 
-                    {/* <div className="flex flex-wrap my-2">
-                        <div className="w-full md:w-1/2 px-3 mb-6 md:mb-0">
-                            <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="grid-city">
-                                Quarantine Start
-                        </label>
-                            <InputMask mask="9999-99-99" name="case_birthdate" value={values.case_birthdate} onChange={e => handleChange(e)} className="block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" type="text" placeholder="YYYY-MM-DD" />
-                            {errors.case_birthdate && (<p className="text-red-500 text-xs italic">{errors.case_birthdate}</p>)}
-                        </div>
-                        <div className="w-full md:w-1/2 px-3 mb-6 md:mb-0">
-                            <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="grid-state">
-                                Quarantine End
-                        </label>
-                            <div className="relative">
-                                <select name="case_gender" value={values.case_gender} onChange={e => handleChange(e)} className="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"  >
-                                    <option>--Select One--</option>
-                                    <option>Male</option>
-                                    <option>Female</option>
-                                </select>
-                                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                                    <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
-                                </div>
-                            </div>
-
-                            {errors.case_gender && (<p className="text-red-500 text-xs italic">{errors.case_gender}</p>)}
-                        </div>
-                    </div> */}
-
                     <div className="flex flex-wrap -mx-3 mb-2">
                         <div className="w-full px-2">
                             <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="grid-password">
@@ -628,15 +626,21 @@ const CaseForm = (props) => {
                         </div>
                     </div>
 
+                    {/* <div className="flex justify-end"> */}
+                    <div className={"flex" + (currentUser.admin ? " justify-between" : " justify-end")}>
+                        {currentUser.admin && (
+                            <button
+                                type="button"
+                                className="bg-transparent text-red-500 hover:bg-red-700 hover:text-white font-bold py-2 px-4 mt-5 rounded"
+                                onClick={() => props.onRemove(values)}
+                            >
+                                Delete
+                            </button>
+                        )}
 
-                    <div className="flex justify-between">
-                        <button type="button" className="bg-transparent hover:bg-red-700 text-white font-bold py-2 px-4 mt-5 rounded" onClick={props.onCancel}>
-                            Cancel
-                    </button>
-
-                        <button type="button" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mt-5 rounded" onClick={handleSaveProfile}>
+                        <button type="button" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mt-5 rounded" onClick={handleSubmit}>
                             Save Changes
-                    </button>
+                        </button>
                     </div>
 
                 </form>

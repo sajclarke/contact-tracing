@@ -5,7 +5,7 @@ import PageWrapper from './components/PageWrapper'
 
 import Home from "./screens/Home";
 import Contacts from "./screens/Contacts";
-import Dashboard from "./screens/Dashboard";
+// import Dashboard from "./screens/Dashboard";
 import Login from "./screens/Login";
 import SignUp from "./screens/SignUp";
 import ForgotPassword from "./screens/ForgotPassword";

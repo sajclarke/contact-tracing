@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect, useContext } from 'react'
-import { format, compareAsc, parse, differenceInCalendarYears, differenceInYears } from 'date-fns'
+import { format, compareAsc, parse, differenceInCalendarYears, differenceInYears, isValid } from 'date-fns'
 import axios from 'axios'
-
+import swal from 'sweetalert';
 import firebase from "../config/firebase";
 
 import { AuthContext } from '../context/Auth'
@@ -91,7 +91,7 @@ const Dashboard = (props) => {
     if (caseObj) {
       // await db.collection("customers").doc(currentUser.uid).collection('cart').add({ name: newItem, quantity: 1 });
       try {
-        await db.collection("cases").doc(newItemID).set({ ...caseObj, case_indexId: 0, case_status: 'pending', dateAdded: format(new Date(), 'yyyy-MM-dd HH:mm') });
+        await db.collection("cases").doc(newItemID).set({ ...caseObj, case_indexId: 0, addedBy: currentUser.uid, dateAdded: format(new Date(), 'yyyy-MM-dd HH:mm') });
       } catch (error) {
         // alert(error);
         console.error(error)
@@ -106,6 +106,43 @@ const Dashboard = (props) => {
     // setNewItem('')
 
   };
+
+  const handleRemoveItem = (caseObj) => {
+
+    const db = firebase.firestore();
+    console.log(caseObj.id)
+    swal({
+      title: "Are you sure?",
+      text: "Once deleted, you will not be able to recover this record!",
+      icon: "warning",
+      buttons: true,
+      dangerMode: true,
+    })
+      .then(async (value) => {
+        // console.log(value)
+        if (value) {
+          try {
+            // await db.collection("customers").doc(currentUser.uid).collection('cart').add({ name: newItem, quantity: 1 });
+            await db.collection("cases").doc(caseObj.id).update({ archived: 1 });
+            toggleModal(!isModalOpen)
+            fetchData()
+          } catch (error) {
+            // alert(error);
+            console.error(error)
+            // setFormError('Sorry but we do not recognize that email/password combination. Please try again')
+          }
+        }
+        // handleToggleModal()
+        // // swal(`The returned value is: ${value}`);
+        // //Send email via firebase function
+        // await axios.post(
+        //   process.env.REACT_APP_FIREBASE_FUNCTION_URL + '/sendmail',
+        //   { email: currentUser.email, status: 'pending', cost: 0, title: 'WiFetch: Order Confirmation' }
+        // );
+
+
+      });
+  }
 
   const handleUpdateItem = async (caseObj) => {
 
@@ -153,26 +190,127 @@ const Dashboard = (props) => {
     // }
     // setItems(newItems)
 
+
+
+  }
+
+  // This is a custom filter UI for selecting
+  // a unique option from a list
+  function SelectColumnFilter({
+    column: { filterValue, setFilter, preFilteredRows, id },
+  }) {
+    // Calculate the options for filtering
+    // using the preFilteredRows
+    const options = React.useMemo(() => {
+      const options = new Set()
+      preFilteredRows.forEach(row => {
+        options.add(row.values[id])
+      })
+      return [...options.values()]
+    }, [id, preFilteredRows])
+
+    // Render a multi-select box
+    return (
+      <div class="inline-block relative">
+        <select
+          class="block appearance-none w-full bg-white border border-gray-400 hover:border-gray-500 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none focus:shadow-outline"
+          value={filterValue}
+          onChange={e => {
+            setFilter(e.target.value || undefined)
+          }}
+        >
+          <option value="">All</option>
+          {options.map((option, i) => (
+            <option key={i} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
+        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+          <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
+        </div>
+      </div>
+    )
+  }
+
+  // This is a custom UI for our 'between' or number range
+  // filter. It uses two number boxes and filters rows to
+  // ones that have values between the two
+  function NumberRangeColumnFilter({
+    column: { filterValue = [], preFilteredRows, setFilter, id },
+  }) {
+    const [min, max] = React.useMemo(() => {
+      let min = preFilteredRows.length ? preFilteredRows[0].values[id] : 0
+      let max = preFilteredRows.length ? preFilteredRows[0].values[id] : 0
+      preFilteredRows.forEach(row => {
+        min = Math.min(row.values[id], min)
+        max = Math.max(row.values[id], max)
+      })
+      return [min, max]
+    }, [id, preFilteredRows])
+
+    // const filters = () => {
+    //   let min = preFilteredRows.length ? preFilteredRows[0].values[id] : 0
+    //   let max = preFilteredRows.length ? preFilteredRows[0].values[id] : 0
+    //   preFilteredRows.forEach(row => {
+    //     min = Math.min(row.values[id], min)
+    //     max = Math.max(row.values[id], max)
+    //   })
+    //   return [min, max]
+    // }
+    // const min = 9
+    // const max = 80
+    // console.log(filters)
+    return (
+      <div
+        style={{
+          display: 'flex',
+        }}
+      >
+        <input
+          value={filterValue[0] || ''}
+          type="number"
+          onChange={e => {
+            const val = e.target.value
+            setFilter((old = []) => [val ? parseInt(val, 10) : undefined, old[1]])
+          }}
+          placeholder={`Min (${min})`}
+          style={{
+            width: '70px',
+            marginRight: '0.5rem',
+          }}
+        />
+        to
+      <input
+          value={filterValue[1] || ''}
+          type="number"
+          onChange={e => {
+            const val = e.target.value
+            setFilter((old = []) => [old[0], val ? parseInt(val, 10) : undefined])
+          }}
+          placeholder={`Max (${max})`}
+          style={{
+            width: '70px',
+            marginLeft: '0.5rem',
+          }}
+        />
+      </div>
+    )
   }
 
 
   const columns = useMemo(
     () => [
 
-      // {
-      //   Header: "Id",
-      //   accessor: "id",
-      //   // Cell: (row, data) => { return (<p>{format(parse('2020-01-01', 'yyyy-MM-dd', new Date()), 'LL')}</p>) },
-      //   // width: 500,
-      //   filterMethod: (filter, row) =>
-      //     row[filter.id].startsWith(filter.value) &&
-      //     row[filter.id].endsWith(filter.value)
-      // },
+      {
+        Header: "#",
+        disableFilters: true,
+        accessor: (row, i) => i + 1,
+      },
       {
         Header: "Date",
         accessor: "dateAdded",
-        // Cell: (row, data) => { return (<p>{format(parse('2020-01-01', 'yyyy-MM-dd', new Date()), 'LL')}</p>) },
-        // width: 500,
+        disableFilters: true,
         filterMethod: (filter, row) =>
           row[filter.id].startsWith(filter.value) &&
           row[filter.id].endsWith(filter.value)
@@ -189,7 +327,7 @@ const Dashboard = (props) => {
         Header: "Symptoms",
         accessor: "case_symptoms",
         // Cell: (row, data) => <ul>{row.row.original.case_symptoms.map(item => <li>{item.label},</li>)}</ul>,
-        Cell: (row, data) => { return (row.row.original.case_symptoms.length > 0 ? <ul>{row.row.original.case_symptoms.map(item => <li>{item.label},</li>)}</ul> : <span></span>) },
+        Cell: (row, data) => { return (row.row.original.case_symptoms.length > 0 ? <ul>{row.row.original.case_symptoms.map((item, index) => <li key={index}>{item.label},</li>)}</ul> : <span></span>) },
         filterMethod: (filter, row) =>
           row[filter.id].startsWith(filter.value) &&
           row[filter.id].endsWith(filter.value)
@@ -202,14 +340,11 @@ const Dashboard = (props) => {
       //     row[filter.id].startsWith(filter.value) &&
       //     row[filter.id].endsWith(filter.value)
       // },
-      {
-        Header: "Mobile #",
-        accessor: "case_mobile_number",
-        // width: 200,
-        filterMethod: (filter, row) =>
-          row[filter.id].startsWith(filter.value) &&
-          row[filter.id].endsWith(filter.value)
-      },
+      // {
+      //   Header: "Mobile #",
+      //   accessor: "case_mobile_number",
+
+      // },
       {
         Header: "Visited",
         accessor: "case_country",
@@ -218,7 +353,7 @@ const Dashboard = (props) => {
         //     row.row.original.case_country.length > 0 ? <ul>{row.row.original.case_country.map(item => <li>{item.label},</li>)}</ul> : <span></span>
         //   }
         // },
-        Cell: (row, data) => { return (row.row.original.case_country.length > 0 ? <ul>{row.row.original.case_country.map(item => <li>{item.label},</li>)}</ul> : <span></span>) },
+        Cell: (row, data) => { return (row.row.original.case_country.length > 0 ? <ul>{row.row.original.case_country.map((item, index) => <li key={index}>{item.label},</li>)}</ul> : <span></span>) },
         // width: 200,
         filterMethod: (filter, row) =>
           row[filter.id].startsWith(filter.value) &&
@@ -227,36 +362,37 @@ const Dashboard = (props) => {
       {
         Header: "Age",
         accessor: "case_birthdate",
-        // Cell: (text, row) => differenceInCalendarYears(new Date(), parse(
-        //   row.original.case_birthdate,
-        //   'YYYY/MM/DD',
-        //   new Date()
-        // )),
-        Cell: (row, data) => <p>{differenceInYears(new Date(), parse(row.row.original.case_birthdate, 'yyyy-MM-dd', new Date()))} yrs</p>,
-        // width: 200,
-        filterMethod: (filter, row) =>
-          row[filter.id].startsWith(filter.value) &&
-          row[filter.id].endsWith(filter.value)
+        disableFilters: true,
+        Cell: (row, data) => {
+          return (isValid(parse(row.row.original.case_birthdate, 'yyyy-MM-dd', new Date())) ?
+            <p>{parseInt(differenceInYears(new Date(), parse(row.row.original.case_birthdate, 'yyyy-MM-dd', new Date())))}</p> :
+            row.row.original.case_age ? row.row.original.case_age : 'n/a'
+          )
+        },
+        // Filter: NumberRangeColumnFilter,
+        // filter: 'between',
       },
 
       {
         Header: "Gender",
         accessor: "case_gender",
-        filterMethod: (filter, row) =>
-          row[filter.id].startsWith(filter.value) &&
-          row[filter.id].endsWith(filter.value)
+        Filter: SelectColumnFilter,
+        filter: 'includes',
       },
       {
         Header: "Isolation",
         accessor: "case_isolation_center",
-        filterMethod: (filter, row) =>
-          row[filter.id].startsWith(filter.value) &&
-          row[filter.id].endsWith(filter.value)
+        Filter: SelectColumnFilter,
+        filter: 'includes',
+        // filterMethod: (filter, row) =>
+        //   row[filter.id].startsWith(filter.value) &&
+        //   row[filter.id].endsWith(filter.value)
 
       },
       {
         Header: 'Action',
         accessor: 'action',
+        disableFilters: true,
         Cell: ({ cell: { row } }) => (
           <div class="flex justify-between">
             <button className="bg-white hover:bg-gray-100 text-gray-800 font-semibold text-xs py-2 px-2 rounded shadow"
@@ -317,14 +453,21 @@ const Dashboard = (props) => {
 
                 <Table
                   columns={columns}
-                  data={items.filter((item) => indexChecked ? item.case_indexId == 0 : item).filter((item) => item.case_name.toLowerCase().includes(filterText))}
+                  data={items.filter((item) => item.archived != 1).filter((item) => indexChecked ? item.case_indexId == 0 : item).filter((item) => item.case_name.toLowerCase().includes(filterText))}
                 />
               </>}
           </div>
 
           {caseInfo && (<Modal isOpen={isModalOpen} title={Object.entries(caseInfo).length === 0 ? "Add New Case" : "Case Details"} toggleModal={handleToggleModal} content={modalContent}>
 
-            <CaseForm editing={Object.entries(caseInfo).length > 0 ? true : false} caseData={caseInfo} onAdd={(data) => handleAddItem(data)} onUpdate={((data) => handleUpdateItem(data))} onCancel={handleToggleModal} />
+            <CaseForm
+              editing={Object.entries(caseInfo).length > 0 ? true : false}
+              caseData={caseInfo}
+              onAdd={(data) => handleAddItem(data)}
+              onUpdate={((data) => handleUpdateItem(data))}
+              // onCancel={handleToggleModal}
+              onRemove={data => handleRemoveItem(data)}
+            />
 
           </Modal>
           )}

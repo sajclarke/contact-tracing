@@ -20,6 +20,8 @@ function DefaultColumnFilter({
     )
 }
 
+
+
 export default function Table({ title, columns, data, fixed }) {
     const [filterInput, setFilterInput] = useState("");
     // Use the state and functions returned from useTable to build your UI
@@ -100,8 +102,14 @@ export default function Table({ title, columns, data, fixed }) {
                                 //         : ""
                                 // }
                                 >
-                                    {column.render("Header")}
-                                    {/* <div>{column.canFilter ? column.render('Filter') : null}</div> */}
+                                    {column.render("Header")}{'  '}{
+                                        column.isSorted
+                                            ? column.isSortedDesc
+                                                ? (<i className="fas fa-arrow-down"></i>)
+                                                : (<i className="fas fa-arrow-up"></i>)
+                                            : ""
+                                    }
+                                    <div>{column.canFilter ? column.render('Filter') : null}</div>
                                 </th>
                             ))}
                         </tr>

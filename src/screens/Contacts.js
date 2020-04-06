@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect, useContext } from 'react'
 import { Link } from 'react-router-dom'
-import { format, compareAsc, parse, differenceInCalendarYears, differenceInYears } from 'date-fns'
+import { format, compareAsc, parse, differenceInCalendarYears, differenceInYears, isValid } from 'date-fns'
 import axios from 'axios'
 
 import firebase from "../config/firebase";
@@ -155,15 +155,10 @@ const Contacts = (props) => {
 
   const columns = [
 
-    // {
-    //   Header: "Id",
-    //   accessor: "id",
-    //   // Cell: (row, data) => { return (<p>{format(parse('2020-01-01', 'yyyy-MM-dd', new Date()), 'LL')}</p>) },
-    //   // width: 500,
-    //   filterMethod: (filter, row) =>
-    //     row[filter.id].startsWith(filter.value) &&
-    //     row[filter.id].endsWith(filter.value)
-    // },
+    {
+      Header: "#",
+      accessor: (row, i) => i + 1,
+    },
     {
       Header: "Date",
       accessor: "dateAdded",
@@ -184,7 +179,8 @@ const Contacts = (props) => {
     {
       Header: "Symptoms",
       accessor: "case_symptoms",
-      Cell: (row, data) => <ul>{row.row.original.case_symptoms.map(item => <li>{item.label},</li>)}</ul>,
+      // Cell: (row, data) => <ul>{row.row.original.case_symptoms.map(item => <li>{item.label},</li>)}</ul>,
+      Cell: (row, data) => { return (row.row.original.case_symptoms.length > 0 ? <ul>{row.row.original.case_symptoms.map((item, index) => <li key={index}>{item.label},</li>)}</ul> : <span></span>) },
       filterMethod: (filter, row) =>
         row[filter.id].startsWith(filter.value) &&
         row[filter.id].endsWith(filter.value)
@@ -206,9 +202,14 @@ const Contacts = (props) => {
         row[filter.id].endsWith(filter.value)
     },
     {
-      Header: "Countries",
+      Header: "Visited",
       accessor: "case_country",
-      Cell: (row, data) => <ul>{row.row.original.case_country.map(item => <li>{item.label},</li>)}</ul>,
+      // Cell: (row, data) => {
+      //   return {
+      //     row.row.original.case_country.length > 0 ? <ul>{row.row.original.case_country.map(item => <li>{item.label},</li>)}</ul> : <span></span>
+      //   }
+      // },
+      Cell: (row, data) => { return (row.row.original.case_country.length > 0 ? <ul>{row.row.original.case_country.map((item, index) => <li key={index}>{item.label},</li>)}</ul> : <span></span>) },
       // width: 200,
       filterMethod: (filter, row) =>
         row[filter.id].startsWith(filter.value) &&
