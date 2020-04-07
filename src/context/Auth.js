@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }) => {
             //     }
             //   })
 
-            if (user.email == 'shannonajclarke@gmail.com' || user.email == 'karen.broome@health.gov.bb') {
+            if (user.email == 'shannonajclarke@gmail.com' || user.email == 'karen.broome@health.gov.bb' || user.email == "nsobersg@gmail.com") {
               isAdmin = true
             }
 

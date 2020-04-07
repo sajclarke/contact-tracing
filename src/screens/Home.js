@@ -310,6 +310,7 @@ const Dashboard = (props) => {
       {
         Header: "Date",
         accessor: "dateAdded",
+        Cell: (row, data) => (format(new Date(row.row.original.dateAdded), 'PPpp')),
         disableFilters: true,
         filterMethod: (filter, row) =>
           row[filter.id].startsWith(filter.value) &&
@@ -317,8 +318,8 @@ const Dashboard = (props) => {
       },
       {
         Header: "Name",
-        accessor: "case_name",
-        // width: 200,
+        id: "case_name",
+        // Cell: (row, data) => { const splitName = row.row.original.case_name.split(' '); return splitName[1] + ', ' + splitName[0] },
         filterMethod: (filter, row) =>
           row[filter.id].startsWith(filter.value) &&
           row[filter.id].endsWith(filter.value)
