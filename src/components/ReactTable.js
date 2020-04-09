@@ -133,7 +133,7 @@ export default function Table({ title, columns, data, fixed }) {
                         return (
                             <tr {...row.getRowProps()}>
                                 {row.cells.map(cell => {
-                                    return <td className="border-solid border-1 border-gray-400 px-4 py-2 text-sm capitalize justify-center items-center content-center "{...cell.getCellProps()}>{cell.render('Cell')}</td>
+                                    return <td className="border-solid border-1 border-gray-400 p-0 text-sm capitalize text-center justify-center items-center content-center "{...cell.getCellProps()}>{cell.render('Cell')}</td>
                                 })}
                             </tr>
                         )

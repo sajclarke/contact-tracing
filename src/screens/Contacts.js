@@ -28,6 +28,7 @@ const Contacts = (props) => {
   console.log(currentUser.uid)
 
   const [items, setItems] = React.useState([]);
+  const [patients, setPatients] = React.useState([]);
   const [caseInfo, setCase] = React.useState(null);
   const [caseId, setCaseId] = React.useState(0);
   const [indexCase, setIndexCase] = React.useState(null);
@@ -88,6 +89,12 @@ const Contacts = (props) => {
     setItems(contactsData.docs.map(doc => ({ ...doc.data(), id: doc.id })));
     console.log(contactsData.docs.map(doc => ({ ...doc.data(), id: doc.id })));
 
+    const patientsData = await db.collection('cases').get();
+    // console.log(caseData, contactsData)
+    // console.log(data)
+    // const patientsList = patientData.docs.map(doc => ({ ...doc.data(), id: doc.id }))
+    setPatients(patientsData.docs.map(doc => ({ ...doc.data(), id: doc.id })));
+
 
   };
 
@@ -120,7 +127,8 @@ const Contacts = (props) => {
     // console.log(newItem)
     if (caseObj) {
       // await db.collection("customers").doc(currentUser.uid).collection('cart').add({ name: newItem, quantity: 1 });
-      await db.collection("cases").doc(newItemID).set({ ...caseObj, case_indexId: caseId, case_status: 'pending', dateAdded: format(new Date(), 'yyyy-MM-dd HH:mm') });
+      await db.collection("cases").doc(newItemID).set({ ...caseObj, addedBy: currentUser.uid, dateAdded: format(new Date(), 'yyyy-MM-dd HH:mm') });
+      // await db.collection("cases").doc(newItemID).set({ ...caseObj, case_indexId: caseId, case_status: 'pending', dateAdded: format(new Date(), 'yyyy-MM-dd HH:mm') });
       // setItems([...items, { id: newItemID, name: newItem, quantity: 1 }])
     }
 
@@ -253,6 +261,7 @@ const Contacts = (props) => {
           <button className="bg-white hover:bg-gray-100 text-gray-800 font-semibold text-xs py-2 px-2 rounded shadow"
             onClick={() => {
               console.log(row.original.case_name);
+
               setModalData(row.original)
               // setModalContent({ modalTitle: 'Order Details', customerId: row.original.customerId, confirmText: 'Ok' })
               toggleModal(!isModalOpen)
@@ -289,7 +298,16 @@ const Contacts = (props) => {
             {caseInfo && (
               <div class="py-4 px-6">
                 <h1 class="text-2xl font-semibold text-gray-800">{caseInfo.case_name}</h1>
-                {indexCase && (<p className="text-xs">Index Case: <Link className="text-blue-500 hover:underline" to={`${caseInfo.case_indexId}`}>{indexCase.case_name}</Link></p>)}
+                {indexCase && (
+                  <p className="text-xs">
+                    Index Case:{' '}
+                    <Link className="text-blue-500 hover:underline" to={`${caseInfo.case_indexId}`}>{indexCase.case_name}</Link>
+                    {/* {'  '}
+                    <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full">
+                      Change
+                    </button> */}
+                  </p>
+                )}
                 <h2 class="text-md pt-3 font-semibold text-gray-800">Status</h2>
                 <p class="text-sm text-gray-700">{caseInfo.case_status}</p>
                 <h2 class="text-md pt-3 font-semibold text-gray-800">Exposure Location</h2>
@@ -363,7 +381,14 @@ const Contacts = (props) => {
           {modalData && (
             <Modal isOpen={isModalOpen} title={Object.entries(modalData).length === 0 ? "Add New Contact" : "Contact Details"} toggleModal={handleToggleModal} content={modalContent}>
 
-              <CaseForm editing={Object.entries(modalData).length > 0 ? true : false} caseData={modalData} onAdd={(data) => handleAddItem(data)} onUpdate={((data) => handleUpdateItem(data))} onCancel={handleToggleModal} />
+              <CaseForm
+                editing={Object.entries(modalData).length > 0 ? true : false}
+                caseData={{ ...modalData, 'case_indexId': caseId }}
+                patients={patients}
+                onAdd={(data) => handleAddItem(data)}
+                onUpdate={((data) => handleUpdateItem(data))}
+                onCancel={handleToggleModal}
+              />
 
             </Modal>
           )}

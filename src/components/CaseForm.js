@@ -67,6 +67,7 @@ const CaseForm = (props) => {
     ]
 
     const isolation_centers = [
+        'No',
         'Home',
         'Campus 1 (Enmore)',
         'Campus 2 (Paragon)',
@@ -84,6 +85,8 @@ const CaseForm = (props) => {
     let arr_symptoms = symptoms.map((item) => ({ value: item, label: item }))
     let arr_comorbidities = cormorbidities.map((item) => ({ value: item, label: item }))
 
+    // let arr_patients = []
+
 
     const testObj = {
         case_name: 'Joe Brown',
@@ -91,6 +94,7 @@ const CaseForm = (props) => {
         case_exposure_location: 'Restaurant',
         case_exposure_date: '',
         case_symptoms: [{ value: 'cough', label: 'Cough' }],
+        case_indexId: 0,
         case_birthdate: '1989-05-22',
         case_gender: 'Male',
         case_home_number: '246-437-4297',
@@ -107,6 +111,7 @@ const CaseForm = (props) => {
         case_exposure_location: '',
         case_exposure_date: '',
         case_symptoms: '',
+        case_indexId: 0,
         case_current_condition: '',
         case_symptom_date: '',
         case_quarantine_location: '',
@@ -126,6 +131,7 @@ const CaseForm = (props) => {
     }
 
     const [values, setValues] = useState(defaultObj)
+    const [patientOptions, setPatientOptions] = useState([])
     const [formError, setFormError] = useState('')
     const [formSuccess, setFormSuccess] = useState('')
 
@@ -137,8 +143,14 @@ const CaseForm = (props) => {
 
 
     useEffect(() => {
+
+        let patientDB = props.patients
+        setPatientOptions(patientDB.map((item) => ({ value: item.id, label: item.case_name })));
+
         // console.log(props.caseData)
         setValues(Object.entries(props.caseData).length > 0 ? props.caseData : defaultObj);
+
+
     }, [props]);
 
 
@@ -153,21 +165,55 @@ const CaseForm = (props) => {
         validate();
     }
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
+
         console.log('submit profile info', values)
         validate()
         console.log(Object.entries(errors).length, errors)
         // return;
+
         if (Object.entries(errors).length < 1) {
-            if (props.editing) {
-                props.onUpdate(values)
+
+            //TODO: Check if there are any duplicates (by matching on name)
+            const db = firebase.firestore();
+            const data = await db.collection('cases').where('case_name', '==', values.case_name.trim()).where('archived', '==', 0).get();
+            // const duplicates = data.docs.map(doc => ({ case_name: doc.data().case_name, birthdate: doc.data().case_birthdate, case_age: doc.data().case_age, id: doc.id }))
+            console.log(data.docs.length)
+            // return;
+            if (data.docs.length) {
+                swal({
+                    title: "Are you sure?",
+                    text: "There's another patient with the same name. Click ok if you still want to add this record!",
+                    icon: "warning",
+                    buttons: true,
+                    dangerMode: true,
+                })
+                    .then(async (value) => {
+                        // console.log(value)
+                        if (value) {
+                            try {
+                                if (props.editing) {
+                                    props.onUpdate(values)
+                                } else {
+                                    props.onAdd(values)
+                                }
+                            } catch (error) {
+
+                            }
+                        }
+                    });
             } else {
-                props.onAdd(values)
+                if (props.editing) {
+                    props.onUpdate(values)
+                } else {
+                    props.onAdd(values)
+                }
             }
+
+
         } else {
             swal("Missing fields!", "You forgot to enter one or more fields", "error");
         }
-
 
     }
 
@@ -275,6 +321,31 @@ const CaseForm = (props) => {
                             </label>
                             <textarea name="case_address" value={values.case_address} onChange={e => handleChange(e)} className="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" placeholder="Where are they residing locally?" rows="3"></textarea>
                             {errors.case_address && (<p className="text-red-500 text-xs italic">{errors.case_address}</p>)}
+                        </div>
+                    </div>
+
+                    <div className="flex flex-wrap -mx-3 mb-6">
+                        <div className="w-full px-2">
+                            <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">
+                                Do they have an index case?
+                            </label>
+
+                            <Select
+                                // isMulti
+                                name="case_indexId"
+                                placeholder="Select from options ..."
+                                options={[{ label: "No", value: 0 }, ...patientOptions]}
+                                // value={values.case_indexId}
+                                value={values.case_indexId == 0 ? { label: "No", value: 0 } : patientOptions.filter((item) => item.value === values.case_indexId)}
+                                onChange={value => {
+                                    console.log(value);
+                                    setValues({
+                                        ...values,
+                                        'case_indexId': value.value
+                                    })
+                                }}
+                            />
+                            {errors.case_indexId && (<p className="text-red-500 text-xs italic">{errors.case_indexId}</p>)}
                         </div>
                     </div>
 

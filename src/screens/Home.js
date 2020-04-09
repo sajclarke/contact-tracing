@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect, useContext } from 'react'
 import { format, compareAsc, parse, differenceInCalendarYears, differenceInYears, isValid } from 'date-fns'
+import { CSVLink, CSVDownload } from "react-csv";
 import axios from 'axios'
 import swal from 'sweetalert';
 import firebase from "../config/firebase";
@@ -91,7 +92,7 @@ const Dashboard = (props) => {
     if (caseObj) {
       // await db.collection("customers").doc(currentUser.uid).collection('cart').add({ name: newItem, quantity: 1 });
       try {
-        await db.collection("cases").doc(newItemID).set({ ...caseObj, case_indexId: 0, addedBy: currentUser.uid, dateAdded: format(new Date(), 'yyyy-MM-dd HH:mm') });
+        await db.collection("cases").doc(newItemID).set({ ...caseObj, addedBy: currentUser.uid, dateAdded: format(new Date(), 'yyyy-MM-dd HH:mm') });
       } catch (error) {
         // alert(error);
         console.error(error)
@@ -132,13 +133,6 @@ const Dashboard = (props) => {
             // setFormError('Sorry but we do not recognize that email/password combination. Please try again')
           }
         }
-        // handleToggleModal()
-        // // swal(`The returned value is: ${value}`);
-        // //Send email via firebase function
-        // await axios.post(
-        //   process.env.REACT_APP_FIREBASE_FUNCTION_URL + '/sendmail',
-        //   { email: currentUser.email, status: 'pending', cost: 0, title: 'WiFetch: Order Confirmation' }
-        // );
 
 
       });
@@ -211,9 +205,9 @@ const Dashboard = (props) => {
 
     // Render a multi-select box
     return (
-      <div class="inline-block relative">
+      <div className="inline-block relative">
         <select
-          class="block appearance-none w-full bg-white border border-gray-400 hover:border-gray-500 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none focus:shadow-outline"
+          className="block appearance-none w-full bg-white border border-gray-400 hover:border-gray-500 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none focus:shadow-outline"
           value={filterValue}
           onChange={e => {
             setFilter(e.target.value || undefined)
@@ -226,8 +220,8 @@ const Dashboard = (props) => {
             </option>
           ))}
         </select>
-        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-          <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
+        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+          <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
         </div>
       </div>
     )
@@ -305,12 +299,13 @@ const Dashboard = (props) => {
       {
         Header: "#",
         disableFilters: true,
+
         accessor: (row, i) => i + 1,
       },
       {
         Header: "Date",
         accessor: "dateAdded",
-        Cell: (row, data) => (format(new Date(row.row.original.dateAdded), 'PPpp')),
+        Cell: (row, data) => (<div className='p-1'>{format(new Date(row.row.original.dateAdded), 'PPpp')}</div>),
         disableFilters: true,
         filterMethod: (filter, row) =>
           row[filter.id].startsWith(filter.value) &&
@@ -318,7 +313,7 @@ const Dashboard = (props) => {
       },
       {
         Header: "Name",
-        id: "case_name",
+        accessor: "case_name",
         // Cell: (row, data) => { const splitName = row.row.original.case_name.split(' '); return splitName[1] + ', ' + splitName[0] },
         filterMethod: (filter, row) =>
           row[filter.id].startsWith(filter.value) &&
@@ -327,6 +322,7 @@ const Dashboard = (props) => {
       {
         Header: "Symptoms",
         accessor: "case_symptoms",
+        disableFilters: true,
         // Cell: (row, data) => <ul>{row.row.original.case_symptoms.map(item => <li>{item.label},</li>)}</ul>,
         Cell: (row, data) => { return (row.row.original.case_symptoms.length > 0 ? <ul>{row.row.original.case_symptoms.map((item, index) => <li key={index}>{item.label},</li>)}</ul> : <span></span>) },
         filterMethod: (filter, row) =>
@@ -349,6 +345,7 @@ const Dashboard = (props) => {
       {
         Header: "Visited",
         accessor: "case_country",
+        disableFilters: true,
         // Cell: (row, data) => {
         //   return {
         //     row.row.original.case_country.length > 0 ? <ul>{row.row.original.case_country.map(item => <li>{item.label},</li>)}</ul> : <span></span>
@@ -363,11 +360,14 @@ const Dashboard = (props) => {
       {
         Header: "Age",
         accessor: "case_birthdate",
+        minWidth: 140,
+        maxWidth: 200,
+        sortType: "basic",
         disableFilters: true,
         Cell: (row, data) => {
           return (isValid(parse(row.row.original.case_birthdate, 'yyyy-MM-dd', new Date())) ?
             <p>{parseInt(differenceInYears(new Date(), parse(row.row.original.case_birthdate, 'yyyy-MM-dd', new Date())))}</p> :
-            row.row.original.case_age ? row.row.original.case_age : 'n/a'
+            row.row.original.case_age ? parseInt(row.row.original.case_age) : 'n/a'
           )
         },
         // Filter: NumberRangeColumnFilter,
@@ -381,8 +381,15 @@ const Dashboard = (props) => {
         filter: 'includes',
       },
       {
+        Header: "Status",
+        accessor: "case_status",
+        Filter: SelectColumnFilter,
+        filter: 'includes',
+      },
+      {
         Header: "Isolation",
         accessor: "case_isolation_center",
+        Cell: row => { return (<div style={row.row.original.case_indexId == 0 ? styles.highlightCell : {}}>{row.row.original.case_isolation_center}</div>) },
         Filter: SelectColumnFilter,
         filter: 'includes',
         // filterMethod: (filter, row) =>
@@ -395,8 +402,8 @@ const Dashboard = (props) => {
         accessor: 'action',
         disableFilters: true,
         Cell: ({ cell: { row } }) => (
-          <div class="flex justify-between">
-            <button className="bg-white hover:bg-gray-100 text-gray-800 font-semibold text-xs py-2 px-2 rounded shadow"
+          <div className="flex justify-between p-3">
+            <button className="bg-white hover:bg-gray-100 text-gray-800 font-semibold text-xs py-2 px-2 mx-3 rounded shadow"
               onClick={() => {
                 console.log(row.original.case_name);
                 selectCase(row.original)
@@ -418,15 +425,58 @@ const Dashboard = (props) => {
     ],
     []
   );
+
+  const cases = items
+  console.log(cases)
   console.log('cases', items)
+
+  const exportData = items.filter((item) => item.archived != 1)
+    .map((item) => {
+
+      let countryList, symptomsList, conditionsList, nationalityList
+
+      if (Array.isArray(item.case_country)) {
+        countryList = item.case_country.map((item) => item.label).join(',')
+      }
+      if (Array.isArray(item.case_symptoms)) {
+        symptomsList = item.case_symptoms.map((item) => item.label).join(',')
+      }
+
+      if (Array.isArray(item.case_conditions)) {
+        conditionsList = item.case_conditions.map((item) => item.label).join(',')
+      }
+
+      if (Array.isArray(item.case_nationality)) {
+        nationalityList = item.case_nationality.map((item) => item.label).join(',')
+      }
+
+      return {
+        ...item,
+        case_indexCase: item.case_indexId.length > 0 ? cases.filter((elem) => elem.id === item.case_indexId)[0].case_name : '',
+        case_country: countryList,
+        case_symptoms: symptomsList,
+        case_conditions: conditionsList,
+        case_nationality: nationalityList
+      }
+    })
+  console.log('countries', exportData)
   return (
     <>
-      <div class="flex my-16">
+      <div className="flex my-16">
 
-        <div class="w-full p-2 h-50">
+        <div className="w-full p-2 h-50">
           <div className="flex justify-between mb-3">
             <h4 className="font-semibold">List of Index Cases</h4>
-            <button class="bg-blue-500 py-2 px-4 rounded text-white" onClick={handleToggleModal}>Add New Case</button>
+            <div>
+              <button className="bg-blue-500 py-2 px-4 rounded shadow text-sm text-white mx-3" onClick={handleToggleModal}>Add New Case</button>
+              <CSVLink
+                className="bg-white hover:bg-gray-100 text-gray-800 font-semibold text-sm py-2 px-2 rounded shadow"
+                data={exportData}
+                filename={'Export_Contact_Tracing_' + format(new Date(), 'yyyy-MM-ddHH:mm')}
+              >
+                Export
+              </CSVLink>
+            </div>
           </div>
           <div>
             {items &&
@@ -443,9 +493,9 @@ const Dashboard = (props) => {
                   </div>
                   <div className="w-2/12">
                     <div className="px-3 content-center justify-center items-center">
-                      <label class="block text-gray-500 font-normal">
-                        <input type="checkbox" checked={indexChecked} class="leading-loose text-pink-600" onChange={handleIndexChecked} />
-                        <span class="text-sm text-gray-600"> Index Cases Only </span>
+                      <label className="block text-gray-500 font-normal">
+                        <input type="checkbox" checked={indexChecked} className="leading-loose text-pink-600" onChange={handleIndexChecked} />
+                        <span className="text-sm text-gray-600"> Index Cases Only </span>
                       </label>
                     </div>
                   </div>
@@ -464,6 +514,7 @@ const Dashboard = (props) => {
             <CaseForm
               editing={Object.entries(caseInfo).length > 0 ? true : false}
               caseData={caseInfo}
+              patients={items.filter((item) => item.archived != 1)}
               onAdd={(data) => handleAddItem(data)}
               onUpdate={((data) => handleUpdateItem(data))}
               // onCancel={handleToggleModal}
@@ -481,6 +532,10 @@ const Dashboard = (props) => {
     </>
   );
 
+}
+
+const styles = {
+  highlightCell: { backgroundColor: 'red', padding: '1em', margin: 0, color: '#fff', height: '100%', width: '100%' }
 }
 
 export default Dashboard
