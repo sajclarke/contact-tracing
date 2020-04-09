@@ -229,16 +229,18 @@ const Contacts = (props) => {
     {
       Header: "Age",
       accessor: "case_birthdate",
-      // Cell: (text, row) => differenceInCalendarYears(new Date(), parse(
-      //   row.original.case_birthdate,
-      //   'YYYY/MM/DD',
-      //   new Date()
-      // )),
-      Cell: (row, data) => <p>{differenceInYears(new Date(), parse(row.row.original.case_birthdate, 'yyyy-MM-dd', new Date()))} yrs</p>,
-      // width: 200,
-      filterMethod: (filter, row) =>
-        row[filter.id].startsWith(filter.value) &&
-        row[filter.id].endsWith(filter.value)
+      minWidth: 140,
+      maxWidth: 200,
+      sortType: "basic",
+      disableFilters: true,
+      Cell: (row, data) => {
+        return (isValid(parse(row.row.original.case_birthdate, 'yyyy-MM-dd', new Date())) ?
+          <p>{parseInt(differenceInYears(new Date(), parse(row.row.original.case_birthdate, 'yyyy-MM-dd', new Date())))}</p> :
+          row.row.original.case_age ? parseInt(row.row.original.case_age) : 'n/a'
+        )
+      },
+      // Filter: NumberRangeColumnFilter,
+      // filter: 'between',
     },
 
     {
@@ -378,7 +380,7 @@ const Contacts = (props) => {
               //     String(row[filter.id]) === filter.value}
               // title="Order History"
               columns={columns}
-              data={items}
+              data={items.filter((item) => item.archived != 1)}
             />}
           </div>
           {modalData && (
