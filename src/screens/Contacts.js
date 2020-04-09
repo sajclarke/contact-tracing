@@ -217,7 +217,10 @@ const Contacts = (props) => {
       //     row.row.original.case_country.length > 0 ? <ul>{row.row.original.case_country.map(item => <li>{item.label},</li>)}</ul> : <span></span>
       //   }
       // },
-      Cell: (row, data) => { return (row.row.original.case_country.length > 0 ? <ul>{row.row.original.case_country.map((item, index) => <li key={index}>{item.label},</li>)}</ul> : <span></span>) },
+      Cell: (row, data) => {
+        return (
+          row.row.original.case_country && row.row.original.case_country.length > 0 ? <ul>{row.row.original.case_country.map((item, index) => <li key={index}>{item.label},</li>)}</ul> : <span></span>)
+      },
       // width: 200,
       filterMethod: (filter, row) =>
         row[filter.id].startsWith(filter.value) &&
