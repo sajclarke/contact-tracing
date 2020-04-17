@@ -15,6 +15,52 @@ import CaseForm from '../components/CaseForm'
 import * as yup from 'yup';
 import useYup from '@usereact/use-yup'
 
+import ReactExport from "react-data-export";
+
+const ExcelFile = ReactExport.ExcelFile;
+const ExcelSheet = ReactExport.ExcelFile.ExcelSheet;
+const ExcelColumn = ReactExport.ExcelFile.ExcelColumn;
+
+const dataSet1 = [
+  {
+    name: "Johson",
+    amount: 30000,
+    sex: 'M',
+    is_married: true
+  },
+  {
+    name: "Monika",
+    amount: 355000,
+    sex: 'F',
+    is_married: false
+  },
+  {
+    name: "John",
+    amount: 250000,
+    sex: 'M',
+    is_married: false
+  },
+  {
+    name: "Josef",
+    amount: 450500,
+    sex: 'M',
+    is_married: true
+  }
+];
+
+var dataSet2 = [
+  {
+    name: "Johnson",
+    total: 25,
+    remainig: 16
+  },
+  {
+    name: "Josef",
+    total: 25,
+    remainig: 7
+  }
+];
+
 
 const validationSchema = yup.object().shape({
   order_cost: yup.number().min(0).required(),
@@ -435,38 +481,60 @@ const Dashboard = (props) => {
 
   const cases = items
   console.log(cases)
+  console.log(columns.map((item) => console.log(item)))
   console.log('cases', items)
 
-  // const exportData = items.filter((item) => item.archived != 1)
-  //   .map((item) => {
+  const tableColumns = ["case_address", "case_age", "case_birthdate", "case_catchment_area", "case_conditions", "case_country", "case_current_condition", "case_exposure_date", "case_exposure_location", "case_gender", "case_home_number", "case_indexCase", "case_living_partners", "case_mobile_number", "case_name", "case_nationality", "case_notes", "case_quarantine_location", "case_status", "case_symptoms", "dateAdded", "quarantine_period", "id", "case_isolation_center", "case_quarantine_period", "case_releasedate", "case_symptom_date", "addedBy", "archived", "case_symtpom_date"]
+  // const tableColumns = ["case_address", "case_age", "case_birthdate"]
 
-  //     let countryList, symptomsList, conditionsList, nationalityList
+  const exportData = items.filter((item) => item.archived != 1)
+    .map((item) => {
 
-  //     if (Array.isArray(item.case_country)) {
-  //       countryList = item.case_country.map((item) => item.label).join(',')
-  //     }
-  //     if (Array.isArray(item.case_symptoms)) {
-  //       symptomsList = item.case_symptoms.map((item) => item.label).join(',')
-  //     }
+      let countryList, symptomsList, conditionsList, nationalityList
 
-  //     if (Array.isArray(item.case_conditions)) {
-  //       conditionsList = item.case_conditions.map((item) => item.label).join(',')
-  //     }
+      if (Array.isArray(item.case_country)) {
+        countryList = item.case_country.map((item) => item.label).join(',')
+      }
+      if (Array.isArray(item.case_symptoms)) {
+        symptomsList = item.case_symptoms.map((item) => item.label).join(',')
+      }
 
-  //     if (Array.isArray(item.case_nationality)) {
-  //       nationalityList = item.case_nationality.map((item) => item.label).join(',')
-  //     }
+      if (Array.isArray(item.case_conditions)) {
+        conditionsList = item.case_conditions.map((item) => item.label).join(',')
+      }
 
-  //     return {
-  //       ...item,
-  //       case_indexCase: item.case_indexId.length > 0 ? cases.filter((elem) => elem.id === item.case_indexId)[0].case_name : '',
-  //       case_country: countryList,
-  //       case_symptoms: symptomsList,
-  //       case_conditions: conditionsList,
-  //       case_nationality: nationalityList
-  //     }
-  //   })
-  // console.log('countries', exportData)
+      if (Array.isArray(item.case_nationality)) {
+        nationalityList = item.case_nationality.map((item) => item.label).join(',')
+      }
+
+      return {
+        ...item,
+        // case_indexCase: item.case_indexId.length > 0 ? cases.filter((elem) => elem.id === item.case_indexId)[0].case_name : '',
+        case_indexCase: item.case_indexId.length > 0 ?
+          item.case_indexId
+            .split(',')
+            .map((caseIndex) => {
+              // console.log(caseIndex)
+              // caseIndex.case_indexId.join(',')
+              // console.log(cases.filter((elem) => elem.id === caseIndex))
+              return (cases.filter((elem) => elem.id === caseIndex)[0].case_name)
+            }
+
+            )
+            .join(',')
+          // .map((caseIndex) =>
+          //   // console.log(caseIndex.case_indexId)
+          //   caseIndex.case_indexId.join(',')
+          //   // cases.find((elem) => elem.id === caseIndex.case_indexId).case_name
+          // )
+          : '',
+        case_country: countryList,
+        case_symptoms: symptomsList,
+        case_conditions: conditionsList,
+        case_nationality: nationalityList
+      }
+    })
+  console.log('export data', exportData)
   return (
     <>
       <div className="flex my-16">
@@ -476,6 +544,24 @@ const Dashboard = (props) => {
             <h4 className="font-semibold">List of Index Cases</h4>
             <div>
               <button className="bg-blue-500 py-2 px-4 rounded shadow text-sm text-white mx-3" onClick={handleToggleModal}>Add New Case</button>
+              <ExcelFile
+                filename={'Export_Contact_Tracing_' + format(new Date(), 'yyyy-MM-ddHH:mm')}
+                element={<button className="bg-white hover:bg-gray-100 text-gray-800 font-semibold text-sm py-2 px-2 rounded shadow">Download Data</button>}
+              >
+                <ExcelSheet data={exportData} name="Patient Cases">
+                  {tableColumns.map((elem, index) => <ExcelColumn key={index} label={elem} value={elem} />)}
+                  {/* <ExcelColumn label="Name" value="name" />
+                  <ExcelColumn label="Wallet Money" value="amount" />
+                  <ExcelColumn label="Gender" value="sex" />
+                  <ExcelColumn label="Marital Status"
+                    value={(col) => col.is_married ? "Married" : "Single"} /> */}
+                </ExcelSheet>
+                {/* <ExcelSheet data={dataSet2} name="Leaves">
+                  <ExcelColumn label="Name" value="name" />
+                  <ExcelColumn label="Total Leaves" value="total" />
+                  <ExcelColumn label="Remaining Leaves" value="remaining" />
+                </ExcelSheet> */}
+              </ExcelFile>
               {/* <CSVLink
                 className="bg-white hover:bg-gray-100 text-gray-800 font-semibold text-sm py-2 px-2 rounded shadow"
                 data={exportData}
