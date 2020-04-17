@@ -10,8 +10,9 @@ function DefaultColumnFilter({
 
     return (
         <input
-            className="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-purple-500"
+            className="block appearance-none w-full bg-white border border-gray-400 hover:border-gray-500 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none focus:shadow-outline"
             value={filterValue || ''}
+            onClick={e => e.stopPropagation()}
             onChange={e => {
                 setFilter(e.target.value || undefined) // Set undefined to remove the filter entirely
             }}
@@ -22,7 +23,7 @@ function DefaultColumnFilter({
 
 
 
-export default function Table({ title, columns, data, fixed }) {
+export default function Table({ title, columns, data, fixed, initialState }) {
     const [filterInput, setFilterInput] = useState("");
     // Use the state and functions returned from useTable to build your UI
 
@@ -54,6 +55,7 @@ export default function Table({ title, columns, data, fixed }) {
         {
             columns,
             data,
+            initialState,
             defaultColumn,
         },
         useFilters,
@@ -181,7 +183,7 @@ export default function Table({ title, columns, data, fixed }) {
                         setPageSize(Number(e.target.value))
                     }}
                 >
-                    {[5, 10, 20, 30, 40, 50].map(pageSize => (
+                    {[5, 10, 20, 30, 40, 50, 100].map(pageSize => (
                         <option key={pageSize} value={pageSize}>
                             Show {pageSize}
                         </option>

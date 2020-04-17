@@ -106,11 +106,11 @@ const CaseForm = (props) => {
 
     const defaultObj = {
         case_name: '',
-        case_country: '',
+        case_country: [],
         case_nationality: '',
         case_exposure_location: '',
         case_exposure_date: '',
-        case_symptoms: '',
+        case_symptoms: [],
         case_indexId: 0,
         case_current_condition: '',
         case_symptom_date: '',
@@ -125,12 +125,12 @@ const CaseForm = (props) => {
         case_address: '',
         case_catchment_area: '',
         case_living_partners: '',
-        case_conditions: '',
+        case_conditions: [],
         case_notes: '',
         case_status: '',
     }
 
-    const [values, setValues] = useState(defaultObj)
+    const [values, setValues] = useState(testObj)
     const [patientOptions, setPatientOptions] = useState([])
     const [formError, setFormError] = useState('')
     const [formSuccess, setFormSuccess] = useState('')
@@ -147,11 +147,15 @@ const CaseForm = (props) => {
         let patientDB = props.patients
         setPatientOptions(patientDB.map((item) => ({ value: item.id, label: item.case_name })));
 
-        // console.log(props.caseData)
+        console.log(props.caseData)
         setValues(Object.entries(props.caseData).length > 0 ? props.caseData : defaultObj);
 
 
     }, [props]);
+
+    const resetForm = () => {
+        setValues(defaultObj)
+    }
 
 
     const handleChange = e => {
@@ -174,41 +178,50 @@ const CaseForm = (props) => {
 
         if (Object.entries(errors).length < 1) {
 
-            //TODO: Check if there are any duplicates (by matching on name)
-            const db = firebase.firestore();
-            const data = await db.collection('cases').where('case_name', '==', values.case_name.trim()).get();
-            // const duplicates = data.docs.map(doc => ({ case_name: doc.data().case_name, birthdate: doc.data().case_birthdate, case_age: doc.data().case_age, id: doc.id }))
-            const duplicates = data.docs.map(doc => ({ ...doc.data(), id: doc.id }))
-            console.log(duplicates.filter(item => item.archived != 1))
-            // return;
-            if (duplicates.length > 0) {
-                swal({
-                    title: "Are you sure?",
-                    text: "There's another patient with the same name. Click ok if you still want to add this record!",
-                    icon: "warning",
-                    buttons: true,
-                    dangerMode: true,
-                })
-                    .then(async (value) => {
-                        // console.log(value)
-                        if (value) {
-                            try {
-                                if (props.editing) {
-                                    props.onUpdate(values)
-                                } else {
-                                    props.onAdd(values)
-                                }
-                            } catch (error) {
 
-                            }
-                        }
-                    });
+
+            if (props.editing) {
+                props.onUpdate(values)
             } else {
-                if (props.editing) {
-                    props.onUpdate(values)
+
+                //TODO: Check if there are any duplicates (by matching on name)
+                const db = firebase.firestore();
+                const data = await db.collection('cases').where('case_name', '==', values.case_name.trim()).get();
+                // const duplicates = data.docs.map(doc => ({ case_name: doc.data().case_name, birthdate: doc.data().case_birthdate, case_age: doc.data().case_age, id: doc.id }))
+                const duplicates = data.docs.map(doc => ({ ...doc.data(), id: doc.id }))
+                console.log(duplicates.filter(item => item.archived != 1))
+                // return;
+                if (duplicates.length > 0) {
+                    swal({
+                        title: "Are you sure?",
+                        text: "There's another patient with the same name. Click ok if you still want to add this record!",
+                        icon: "warning",
+                        buttons: true,
+                        dangerMode: true,
+                    })
+                        .then(async (value) => {
+                            // console.log(value)
+                            if (value) {
+                                try {
+                                    props.onAdd(values)
+
+                                    resetForm()
+
+                                } catch (error) {
+                                    console.error(error)
+                                }
+                            }
+                        });
                 } else {
+                    // if (props.editing) {
+                    //     props.onUpdate(values)
+                    // } else {
+                    //     props.onAdd(values)
+                    // }
                     props.onAdd(values)
+                    resetForm()
                 }
+                // props.onAdd(values)
             }
 
 
@@ -232,6 +245,9 @@ const CaseForm = (props) => {
 
     // }
     console.log(values)
+    console.log(patientOptions)
+
+    const patientList = [{ label: "No", value: 0 }, ...patientOptions];
     return (
 
         <>
@@ -332,17 +348,52 @@ const CaseForm = (props) => {
                             </label>
 
                             <Select
-                                // isMulti
+                                isMulti
                                 name="case_indexId"
                                 placeholder="Select from options ..."
+                                // options={patientList}
                                 options={[{ label: "No", value: 0 }, ...patientOptions]}
                                 // value={values.case_indexId}
-                                value={values.case_indexId == 0 ? { label: "No", value: 0 } : patientOptions.filter((item) => item.value === values.case_indexId)}
+                                // value={values.case_indexId == 0 ? { label: "No", value: 0 } : patientOptions.filter((item) => item.value === values.case_indexId)}
+                                value={(!values.case_indexId || values.case_indexId == 0) ?
+                                    { label: "No", value: 0 } :
+                                    values.case_indexId.split(',').map(caseIndex => {
+                                        if (caseIndex == 0) {
+                                            return { label: "No", value: 0 }
+                                        } else {
+                                            console.log(caseIndex, patientOptions.find((patient) => patient.value === caseIndex))
+                                            return patientOptions.find((patient) => patient.value === caseIndex)
+                                        }
+
+                                    }
+                                    )}
+                                // value={
+                                //     values.case_indexId ? (
+                                //         String(values.case_indexId) === String(0) ?
+                                //             { label: "No", value: 0 } :
+                                //             values.case_indexId.split(',').map(caseIndex => {
+                                //                 if (caseIndex === 0) {
+                                //                     return { label: "No", value: 0 }
+                                //                 } else {
+                                //                     console.log(caseIndex, patientOptions.find((patient) => patient.value === caseIndex))
+                                //                     return patientOptions.find((patient) => patient.value === caseIndex)
+                                //                 }
+
+                                //             }
+                                //             )
+                                //     )
+                                //         : null
+                                //     // patientOptions.filter((item) => item.value === values.case_indexId)
+                                // }
                                 onChange={value => {
                                     console.log(value);
+                                    if (value && value.length > 1) {
+                                        value = value.filter((item) => item.value != 0)
+                                    }
                                     setValues({
                                         ...values,
-                                        'case_indexId': value.value
+                                        'case_indexId': value ? value.map(item => item.value).join(',') : null
+                                        // 'case_indexId': value
                                     })
                                 }}
                             />

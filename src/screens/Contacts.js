@@ -31,7 +31,8 @@ const Contacts = (props) => {
   const [patients, setPatients] = React.useState([]);
   const [caseInfo, setCase] = React.useState(null);
   const [caseId, setCaseId] = React.useState(0);
-  const [indexCase, setIndexCase] = React.useState(null);
+  const [caseAuthor, setCaseAuthor] = React.useState(null);
+  const [indexCase, setIndexCase] = React.useState([]);
   const [formValues, setFormValues] = React.useState({ cost: '', status: '' });
   const [modalData, setModalData] = useState(null)
   const [isModalOpen, toggleModal] = React.useState(false);
@@ -67,12 +68,20 @@ const Contacts = (props) => {
         console.log("Document data:", doc.data());
         setCase({ ...doc.data(), id: doc.id })
 
-        await db.collection('cases').doc(doc.data().case_indexId).get().then((doc) => {
-          if (doc.exists) {
-            setIndexCase({ ...doc.data(), id: doc.id })
-          }
-        })
+        if (doc.data().case_indexId != 0) {
+          //TODO: map case_indexId to get index names for each case
+          const indices = doc.data().case_indexId.split(',')
+          indices.map(async (index) => {
+            await db.collection('cases').doc(index).get().then((doc) => {
+              if (doc.exists) {
+                console.log(doc.data().case_name)
+                // setIndexCase({ ...doc.data(), id: doc.id })
+                setIndexCase(prevState => [...prevState || [], { ...doc.data(), id: doc.id }])
+              }
+            })
+          })
 
+        }
 
       } else {
         // doc.data() will be undefined in this case
@@ -82,12 +91,16 @@ const Contacts = (props) => {
       console.log("Error getting document:", error);
     });
 
-    const contactsData = await db.collection('cases').where('case_indexId', '==', caseId).get();
+    // const contactsData = await db.collection('cases').where('case_indexId', 'array-contains', caseId).get();
+    const contactsData = await db.collection('cases').get();
     // console.log(caseData, contactsData)
     // console.log(data)
-
-    setItems(contactsData.docs.map(doc => ({ ...doc.data(), id: doc.id })));
     console.log(contactsData.docs.map(doc => ({ ...doc.data(), id: doc.id })));
+    let contactList = contactsData.docs.map(doc => ({ ...doc.data(), id: doc.id }))
+    console.log(contactList.filter((item) => item.case_indexId ? item.case_indexId.split(',').includes(caseId) : false))
+    // setItems(contactsData.docs.map(doc => ({ ...doc.data(), id: doc.id })));
+    setItems(contactList.filter((item) => item.case_indexId ? item.case_indexId.split(',').includes(caseId) : false))
+
 
     const patientsData = await db.collection('cases').get();
     // console.log(caseData, contactsData)
@@ -117,6 +130,7 @@ const Contacts = (props) => {
   const handleToggleModal = () => {
     // fetchData()
     setModalData({})
+    setModalData({ ...modalData, 'case_indexId': caseId })
     toggleModal(!isModalOpen)
   }
 
@@ -165,16 +179,13 @@ const Contacts = (props) => {
 
     {
       Header: "#",
+      disableFilters: true,
       accessor: (row, i) => i + 1,
     },
     {
       Header: "Date",
       accessor: "dateAdded",
-      // Cell: (row, data) => { return (<p>{format(parse('2020-01-01', 'yyyy-MM-dd', new Date()), 'LL')}</p>) },
-      // width: 500,
-      filterMethod: (filter, row) =>
-        row[filter.id].startsWith(filter.value) &&
-        row[filter.id].endsWith(filter.value)
+      disableFilters: true,
     },
     {
       Header: "Name",
@@ -228,17 +239,20 @@ const Contacts = (props) => {
     },
     {
       Header: "Age",
-      accessor: "case_birthdate",
+      id: "age",
+      accessor: d => d.case_age ? Number(d.case_age) : (isValid(parse(d.case_birthdate, 'yyyy-MM-dd', new Date())) ? Number(differenceInYears(new Date(), parse(d.case_birthdate, 'yyyy-MM-dd', new Date()))) : '-'),
+      // sortMethod: (a, b) => Number(a) - Number(b),
+      // sortType: 'basic',
       minWidth: 140,
       maxWidth: 200,
-      sortType: "basic",
+      // sortType: "basic",
       disableFilters: true,
-      Cell: (row, data) => {
-        return (isValid(parse(row.row.original.case_birthdate, 'yyyy-MM-dd', new Date())) ?
-          <p>{parseInt(differenceInYears(new Date(), parse(row.row.original.case_birthdate, 'yyyy-MM-dd', new Date())))}</p> :
-          row.row.original.case_age ? parseInt(row.row.original.case_age) : 'n/a'
-        )
-      },
+      // Cell: (row, data) => {
+      //   return (isValid(parse(row.row.original.case_birthdate, 'yyyy-MM-dd', new Date())) ?
+      //     Number(differenceInYears(new Date(), parse(row.row.original.case_birthdate, 'yyyy-MM-dd', new Date()))) :
+      //     row.row.original.case_age ? Number(row.row.original.case_age) : 'n/a'
+      //   )
+      // },
       // Filter: NumberRangeColumnFilter,
       // filter: 'between',
     },
@@ -261,6 +275,7 @@ const Contacts = (props) => {
     {
       Header: 'Action',
       accessor: 'action',
+      disableFilters: true,
       Cell: ({ cell: { row } }) => (
         <div class="flex justify-between">
           <button className="bg-white hover:bg-gray-100 text-gray-800 font-semibold text-xs py-2 px-2 rounded shadow"
@@ -291,7 +306,7 @@ const Contacts = (props) => {
     <>
       <div class="container flex my-16">
 
-        <div class="w-1/4  h-50">
+        <div class="w-1/5  h-50">
           <div class="max-w-sm bg-white shadow-lg rounded-lg overflow-hidden my-4">
             {/* <img class="w-full h-56 object-cover object-center" src="https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=334&q=80" alt="avatar" /> */}
             <div class="flex items-center px-6 py-3 bg-gray-900">
@@ -303,10 +318,16 @@ const Contacts = (props) => {
             {caseInfo && (
               <div class="py-4 px-6">
                 <h1 class="text-2xl font-semibold text-gray-800">{caseInfo.case_name}</h1>
+
+                {/* <p className='text-xs'>{caseInfo.case_indexId}</p> */}
                 {indexCase && (
                   <p className="text-xs">
-                    Index Case:{' '}
-                    <Link className="text-blue-500 hover:underline" to={`${caseInfo.case_indexId}`}>{indexCase.case_name}</Link>
+                    Index Case(s):{' '}
+                    <ul>
+                      {indexCase.map((item) => <li><Link className="text-blue-500 hover:underline" to={`${item.id}`}>{item.case_name}</Link></li>)}
+                    </ul>
+
+
                     {/* {'  '}
                     <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full">
                       Change
@@ -341,7 +362,9 @@ const Contacts = (props) => {
                 <p class="text-sm text-gray-700">{caseInfo.case_conditions && caseInfo.case_conditions.map(item => (<span>{item.label}, </span>))}</p>
                 <h2 class="text-md pt-3 font-semibold text-gray-800">Notes</h2>
                 <p class="text-sm text-gray-700">{caseInfo.case_notes}</p>
-
+                <h2 class="text-md pt-3 font-semibold text-gray-800">Added By</h2>
+                <p class="text-xs text-blue-500">{caseInfo.addedBy}</p>
+                {caseAuthor && <p class="text-xs text-blue-500">{caseAuthor}</p>}
 
 
                 {/* <div class="flex items-center mt-4 text-gray-700">
@@ -368,7 +391,7 @@ const Contacts = (props) => {
           </div>
 
         </div>
-        <div class="w-3/4 p-5 h-50">
+        <div class="w-4/5 p-5 h-50">
           <div className="flex justify-between">
             <h4>List of Contacts</h4>
             <button class="bg-blue-500 py-2 px-4 rounded text-white" onClick={handleToggleModal}>Add New Contact</button>
@@ -379,6 +402,9 @@ const Contacts = (props) => {
               // defaultFilterMethod={(filter, row) =>
               //     String(row[filter.id]) === filter.value}
               // title="Order History"
+              initialState={{
+                sortBy: [{ id: "dateAdded", desc: true }],
+              }}
               columns={columns}
               data={items.filter((item) => item.archived != 1)}
             />}
@@ -388,7 +414,8 @@ const Contacts = (props) => {
 
               <CaseForm
                 editing={Object.entries(modalData).length > 0 ? true : false}
-                caseData={{ ...modalData, 'case_indexId': caseId }}
+                // caseData={{ ...modalData, 'case_indexId': caseId }}
+                caseData={modalData}
                 patients={patients}
                 onAdd={(data) => handleAddItem(data)}
                 onUpdate={((data) => handleUpdateItem(data))}

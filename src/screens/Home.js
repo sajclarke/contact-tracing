@@ -209,6 +209,7 @@ const Dashboard = (props) => {
         <select
           className="block appearance-none w-full bg-white border border-gray-400 hover:border-gray-500 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none focus:shadow-outline"
           value={filterValue}
+          onClick={e => e.stopPropagation()}
           onChange={e => {
             setFilter(e.target.value || undefined)
           }}
@@ -299,7 +300,6 @@ const Dashboard = (props) => {
       {
         Header: "#",
         disableFilters: true,
-
         accessor: (row, i) => i + 1,
       },
       {
@@ -313,21 +313,22 @@ const Dashboard = (props) => {
       },
       {
         Header: "Name",
-        accessor: "case_name",
-        // Cell: (row, data) => { const splitName = row.row.original.case_name.split(' '); return splitName[1] + ', ' + splitName[0] },
-        filterMethod: (filter, row) =>
-          row[filter.id].startsWith(filter.value) &&
-          row[filter.id].endsWith(filter.value)
+        // accessor: "case_name",
+        id: "name",
+        accessor: d => d.case_name.trim().split(' ').reverse().join(', '),
+
       },
       {
         Header: "Symptoms",
-        accessor: "case_symptoms",
-        disableFilters: true,
+        id: "symptoms",
+        accessor: d => d.case_symptoms.map((item => item.label)).join(', '),
+        // accessor: "case_symptoms",
+        // disableFilters: true,
         // Cell: (row, data) => <ul>{row.row.original.case_symptoms.map(item => <li>{item.label},</li>)}</ul>,
-        Cell: (row, data) => { return (row.row.original.case_symptoms.length > 0 ? <ul>{row.row.original.case_symptoms.map((item, index) => <li key={index}>{item.label},</li>)}</ul> : <span></span>) },
-        filterMethod: (filter, row) =>
-          row[filter.id].startsWith(filter.value) &&
-          row[filter.id].endsWith(filter.value)
+        // Cell: (row, data) => { return (row.row.original.case_symptoms.length > 0 ? <ul>{row.row.original.case_symptoms.map((item, index) => <li key={index}>{item.label},</li>)}</ul> : <span></span>) },
+        // filterMethod: (filter, row) =>
+        //   row[filter.id].startsWith(filter.value) &&
+        //   row[filter.id].endsWith(filter.value)
       },
       // {
       //   Header: "Home #",
@@ -344,32 +345,37 @@ const Dashboard = (props) => {
       // },
       {
         Header: "Visited",
-        accessor: "case_country",
-        disableFilters: true,
-        // Cell: (row, data) => {
-        //   return {
-        //     row.row.original.case_country.length > 0 ? <ul>{row.row.original.case_country.map(item => <li>{item.label},</li>)}</ul> : <span></span>
-        //   }
-        // },
-        Cell: (row, data) => { return (row.row.original.case_country && row.row.original.case_country.length > 0 ? <ul>{row.row.original.case_country.map((item, index) => <li key={index}>{item.label},</li>)}</ul> : <span></span>) },
-        // width: 200,
-        filterMethod: (filter, row) =>
-          row[filter.id].startsWith(filter.value) &&
-          row[filter.id].endsWith(filter.value)
+        id: "country",
+        accessor: d => d.case_country ? d.case_country.map((item => item.label)).join(', ') : '',
+        // accessor: "case_country",
+        // disableFilters: true,
+        // // Cell: (row, data) => {
+        // //   return {
+        // //     row.row.original.case_country.length > 0 ? <ul>{row.row.original.case_country.map(item => <li>{item.label},</li>)}</ul> : <span></span>
+        // //   }
+        // // },
+        // Cell: (row, data) => { return (row.row.original.case_country && row.row.original.case_country.length > 0 ? <ul>{row.row.original.case_country.map((item, index) => <li key={index}>{item.label},</li>)}</ul> : <span></span>) },
+        // // width: 200,
+        // filterMethod: (filter, row) =>
+        //   row[filter.id].startsWith(filter.value) &&
+        //   row[filter.id].endsWith(filter.value)
       },
       {
         Header: "Age",
-        accessor: "case_birthdate",
+        id: "age",
+        accessor: d => d.case_age ? Number(d.case_age) : (isValid(parse(d.case_birthdate, 'yyyy-MM-dd', new Date())) ? Number(differenceInYears(new Date(), parse(d.case_birthdate, 'yyyy-MM-dd', new Date()))) : '-'),
+        // sortMethod: (a, b) => Number(a) - Number(b),
+        // sortType: 'basic',
         minWidth: 140,
         maxWidth: 200,
-        sortType: "basic",
+        // sortType: "basic",
         disableFilters: true,
-        Cell: (row, data) => {
-          return (isValid(parse(row.row.original.case_birthdate, 'yyyy-MM-dd', new Date())) ?
-            <p>{parseInt(differenceInYears(new Date(), parse(row.row.original.case_birthdate, 'yyyy-MM-dd', new Date())))}</p> :
-            row.row.original.case_age ? parseInt(row.row.original.case_age) : 'n/a'
-          )
-        },
+        // Cell: (row, data) => {
+        //   return (isValid(parse(row.row.original.case_birthdate, 'yyyy-MM-dd', new Date())) ?
+        //     Number(differenceInYears(new Date(), parse(row.row.original.case_birthdate, 'yyyy-MM-dd', new Date()))) :
+        //     row.row.original.case_age ? Number(row.row.original.case_age) : 'n/a'
+        //   )
+        // },
         // Filter: NumberRangeColumnFilter,
         // filter: 'between',
       },
@@ -400,12 +406,13 @@ const Dashboard = (props) => {
       {
         Header: 'Action',
         accessor: 'action',
+        disableSortBy: true,
         disableFilters: true,
         Cell: ({ cell: { row } }) => (
           <div className="flex justify-between p-3">
             <button className="bg-white hover:bg-gray-100 text-gray-800 font-semibold text-xs py-2 px-2 mx-3 rounded shadow"
               onClick={() => {
-                console.log(row.original.case_name);
+                console.log(row.original);
                 selectCase(row.original)
                 // setModalContent({ modalTitle: 'Order Details', customerId: row.original.customerId, confirmText: 'Ok' })
                 toggleModal(!isModalOpen)
@@ -430,36 +437,36 @@ const Dashboard = (props) => {
   console.log(cases)
   console.log('cases', items)
 
-  const exportData = items.filter((item) => item.archived != 1)
-    .map((item) => {
+  // const exportData = items.filter((item) => item.archived != 1)
+  //   .map((item) => {
 
-      let countryList, symptomsList, conditionsList, nationalityList
+  //     let countryList, symptomsList, conditionsList, nationalityList
 
-      if (Array.isArray(item.case_country)) {
-        countryList = item.case_country.map((item) => item.label).join(',')
-      }
-      if (Array.isArray(item.case_symptoms)) {
-        symptomsList = item.case_symptoms.map((item) => item.label).join(',')
-      }
+  //     if (Array.isArray(item.case_country)) {
+  //       countryList = item.case_country.map((item) => item.label).join(',')
+  //     }
+  //     if (Array.isArray(item.case_symptoms)) {
+  //       symptomsList = item.case_symptoms.map((item) => item.label).join(',')
+  //     }
 
-      if (Array.isArray(item.case_conditions)) {
-        conditionsList = item.case_conditions.map((item) => item.label).join(',')
-      }
+  //     if (Array.isArray(item.case_conditions)) {
+  //       conditionsList = item.case_conditions.map((item) => item.label).join(',')
+  //     }
 
-      if (Array.isArray(item.case_nationality)) {
-        nationalityList = item.case_nationality.map((item) => item.label).join(',')
-      }
+  //     if (Array.isArray(item.case_nationality)) {
+  //       nationalityList = item.case_nationality.map((item) => item.label).join(',')
+  //     }
 
-      return {
-        ...item,
-        case_indexCase: item.case_indexId.length > 0 ? cases.filter((elem) => elem.id === item.case_indexId)[0].case_name : '',
-        case_country: countryList,
-        case_symptoms: symptomsList,
-        case_conditions: conditionsList,
-        case_nationality: nationalityList
-      }
-    })
-  console.log('countries', exportData)
+  //     return {
+  //       ...item,
+  //       case_indexCase: item.case_indexId.length > 0 ? cases.filter((elem) => elem.id === item.case_indexId)[0].case_name : '',
+  //       case_country: countryList,
+  //       case_symptoms: symptomsList,
+  //       case_conditions: conditionsList,
+  //       case_nationality: nationalityList
+  //     }
+  //   })
+  // console.log('countries', exportData)
   return (
     <>
       <div className="flex my-16">
@@ -469,13 +476,13 @@ const Dashboard = (props) => {
             <h4 className="font-semibold">List of Index Cases</h4>
             <div>
               <button className="bg-blue-500 py-2 px-4 rounded shadow text-sm text-white mx-3" onClick={handleToggleModal}>Add New Case</button>
-              <CSVLink
+              {/* <CSVLink
                 className="bg-white hover:bg-gray-100 text-gray-800 font-semibold text-sm py-2 px-2 rounded shadow"
                 data={exportData}
                 filename={'Export_Contact_Tracing_' + format(new Date(), 'yyyy-MM-ddHH:mm')}
               >
                 Export
-              </CSVLink>
+              </CSVLink> */}
             </div>
           </div>
           <div>
@@ -504,6 +511,9 @@ const Dashboard = (props) => {
 
                 <Table
                   columns={columns}
+                  initialState={{
+                    sortBy: [{ id: "dateAdded", desc: true }],
+                  }}
                   data={items.filter((item) => item.archived != 1).filter((item) => indexChecked ? item.case_indexId == 0 : item).filter((item) => item.case_name.toLowerCase().includes(filterText))}
                 />
               </>}
