@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect, useContext } from 'react'
 import { Link } from 'react-router-dom'
-import { format, compareAsc, parse, differenceInCalendarYears, differenceInYears, isValid } from 'date-fns'
+import { format, compareAsc, parse, differenceInYears, differenceInDays, isValid } from 'date-fns'
 import axios from 'axios'
 import swal from 'sweetalert';
 import firebase from "../config/firebase";
@@ -452,16 +452,17 @@ const Contacts = (props) => {
                 {currentUser.admin && (
                   <>
                     <h2 class="text-md pt-3 font-semibold text-gray-800">Added By</h2>
-                    {caseInfo.author && <p class="text-xs text-blue-500">{caseInfo.author}</p>}
+                    {caseInfo.author && <p class="text-xs text-gray-500">{caseInfo.author}</p>}
                   </>
                 )}
 
-                {currentUser.admin && currentUser.updatedBy && (
+                {currentUser.admin && caseInfo.updatedBy && (
                   <>
-                    <h2 class="text-md pt-3 font-semibold text-gray-800">Last Updated</h2>
-                    {caseInfo.dateUpdated && <p class="text-xs text-blue-500">{caseInfo.dateUpdated}</p>}
-                    <h2 class="text-md pt-3 font-semibold text-gray-800">Updated By</h2>
-                    {caseInfo.updatedBy && <p class="text-xs text-blue-500">{caseInfo.updatedBy}</p>}
+                    <h2 class="text-md pt-3 font-semibold text-gray-800">Last Updated By</h2>
+                    {caseInfo.updatedBy && <p class="text-xs text-gray-500">{caseInfo.updatedBy}</p>}
+                    {caseInfo.dateUpdated && <p class="text-xs text-gray-500">({Number(differenceInDays(new Date(), new Date(caseInfo.dateUpdated)))} days ago)</p>}
+                    {/* <span className='text-sm'>by</span>{' '} */}
+
                   </>
                 )}
 

@@ -264,7 +264,7 @@ const Dashboard = (props) => {
           value={filterValue}
           onClick={e => e.stopPropagation()}
           onChange={e => {
-            setFilters(e.target.value || undefined)
+            setFilter(e.target.value || undefined)
           }}
         >
           <option value="">All</option>
@@ -463,6 +463,15 @@ const Dashboard = (props) => {
 
       },
       {
+        Header: "Condition",
+        id: "case_current_condition",
+        accessor: d => d.case_current_condition ? d.case_current_condition.trim().toLowerCase() : '',
+        // accessor: "case_current_condition",
+        // Cell: row => { return (<div style={row.row.original.case_current_condition ? styles.highlightCell : {}}>{row.row.original.case_current_condition}</div>) },
+        Filter: SelectColumnFilter,
+        filter: 'includes'
+      },
+      {
         Header: 'Action',
         accessor: 'action',
         disableSortBy: true,
@@ -591,8 +600,8 @@ const Dashboard = (props) => {
           <div>
             {items &&
               <>
-                <div className='flex flex-row justify-center items-center'>
-                  <div className="w-6/12">
+                <div className='flex flex-row justify-start items-center'>
+                  <div className="w-4/12">
                     <input
                       className="shadow appearance-none border rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                       name="filterText"
@@ -601,7 +610,7 @@ const Dashboard = (props) => {
                       placeholder={"Search for a case by name"}
                     />
                   </div>
-                  <div className='w-3/12'>
+                  <div className='w-4/12'>
                     <div>
                       <Flatpickr
                         // data-enable-time
@@ -621,7 +630,9 @@ const Dashboard = (props) => {
                     </div>
 
                   </div>
-                  <button className="bg-transparent py-2 px-4 text-sm text-blue-500 mx-1" onClick={() => setFilters([])}>Reset Dates</button>
+                  <div className="w-1/12">
+                    <button className="bg-transparent p-2 text-sm text-blue-500 mx-1" onClick={() => setFilters([])}>Reset Dates</button>
+                  </div>
                   <div className="w-2/12">
                     <div className="px-3 content-center justify-center items-center">
                       <label className="block text-gray-500 font-normal">
