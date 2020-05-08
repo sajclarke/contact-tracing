@@ -4,15 +4,10 @@ import FooterSmall from './FooterSmall'
 
 const PageWrapper = ({ children }) => {
     return (
-        <div className='flex flex-col min-h-screen'>
+        <div className="flex flex-col w-full h-screen min-h-screen overflow-auto">
             <Navbar />
-            <main className='flex-1'>
-                <div className="w-full overflow-scroll flex flex-col items-center justify-center content-center bg-gray-200 px-3">
-                    {children}
-                </div>
-
-            </main>
-            {/* <FooterSmall absolute /> */}
+            <main className="flex-grow h-auto bg-gray-300 min-w-full pb-16">{children}</main>
+            {/* <FooterSmall /> */}
         </div>
     )
 }

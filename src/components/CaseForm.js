@@ -26,6 +26,7 @@ const validationSchema = yup.object().shape({
     case_name: yup.string().required('Name is required'),
     case_exposure_location: yup.string(),
     case_exposure_date: yup.string(),
+    case_indexId: yup.string().required('You need to indicate whether or not they were in contact with another case'),
     // case_exposure_date: yup.string().matches(dateStringRegExp, 'Exposure Date is not valid'),
     // case_exposure_date: yup.date(),
     // case_exposure_date: yup.date().typeError('Invalid date').required('Exposure Date is required'),
@@ -51,7 +52,7 @@ const CaseForm = (props) => {
 
     let countryOptions = countryList().getData()
 
-    console.log(countryOptions)
+    // console.log(countryOptions)
     // console.log(props.caseData.case_name)
 
     const polyclinics = [
@@ -72,7 +73,8 @@ const CaseForm = (props) => {
         'Campus 1 (Enmore)',
         'Campus 2 (Paragon)',
         'Campus 3 (School)',
-        'Campus 4 (Harrison Pt)'
+        'Campus 4 (Harrison Pt)',
+        'Released'
     ]
 
     const symptoms = [
@@ -130,7 +132,7 @@ const CaseForm = (props) => {
         case_status: '',
     }
 
-    const [values, setValues] = useState(testObj)
+    const [values, setValues] = useState(defaultObj)
     const [patientOptions, setPatientOptions] = useState([])
     const [formError, setFormError] = useState('')
     const [formSuccess, setFormSuccess] = useState('')
@@ -148,7 +150,7 @@ const CaseForm = (props) => {
         setPatientOptions(patientDB.map((item) => ({ value: item.id, label: item.case_name })));
 
         console.log(props.caseData)
-        setValues(Object.entries(props.caseData).length > 0 ? props.caseData : defaultObj);
+        setValues(Object.entries(props.caseData).length > 0 ? { ...defaultObj, ...props.caseData } : defaultObj);
 
 
     }, [props]);
@@ -244,8 +246,8 @@ const CaseForm = (props) => {
 
 
     // }
-    console.log(values)
-    console.log(patientOptions)
+    // console.log(values)
+    // console.log(patientOptions)
 
     const patientList = [{ label: "No", value: 0 }, ...patientOptions];
     return (
@@ -344,7 +346,7 @@ const CaseForm = (props) => {
                     <div className="flex flex-wrap -mx-3 mb-6">
                         <div className="w-full px-2">
                             <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">
-                                Do they have an index case?
+                                Were they in contact with another case?
                             </label>
 
                             <Select
@@ -361,7 +363,7 @@ const CaseForm = (props) => {
                                         if (caseIndex == 0) {
                                             return { label: "No", value: 0 }
                                         } else {
-                                            console.log(caseIndex, patientOptions.find((patient) => patient.value === caseIndex))
+                                            // console.log(caseIndex, patientOptions.find((patient) => patient.value === caseIndex))
                                             return patientOptions.find((patient) => patient.value === caseIndex)
                                         }
 
@@ -414,6 +416,9 @@ const CaseForm = (props) => {
                                     <option>positive</option>
                                     <option>negative</option>
                                 </select>
+                                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                                    <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
+                                </div>
                             </div>
                             {errors.case_status && (<p className="text-red-500 text-xs italic">{errors.case_status}</p>)}
                         </div>
@@ -824,7 +829,7 @@ const CaseForm = (props) => {
                         )}
 
                         <button type="button" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mt-5 rounded" onClick={handleSubmit}>
-                            Save Changes
+                            {!props.editing ? 'Add Case' : 'Save Changes'}
                         </button>
                     </div>
 

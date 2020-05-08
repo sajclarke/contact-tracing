@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect, useContext } from 'react'
-import { format, compareAsc, parse, differenceInCalendarYears, differenceInYears, isValid } from 'date-fns'
+import { format, compareAsc, parse, differenceInCalendarYears, differenceInYears, isValid, isWithinRange } from 'date-fns'
 import { CSVLink, CSVDownload } from "react-csv";
 import axios from 'axios'
 import swal from 'sweetalert';
@@ -17,49 +17,16 @@ import useYup from '@usereact/use-yup'
 
 import ReactExport from "react-data-export";
 
+import "flatpickr/dist/themes/material_green.css";
+
+import Flatpickr from "react-flatpickr";
+
+
 const ExcelFile = ReactExport.ExcelFile;
 const ExcelSheet = ReactExport.ExcelFile.ExcelSheet;
 const ExcelColumn = ReactExport.ExcelFile.ExcelColumn;
 
-const dataSet1 = [
-  {
-    name: "Johson",
-    amount: 30000,
-    sex: 'M',
-    is_married: true
-  },
-  {
-    name: "Monika",
-    amount: 355000,
-    sex: 'F',
-    is_married: false
-  },
-  {
-    name: "John",
-    amount: 250000,
-    sex: 'M',
-    is_married: false
-  },
-  {
-    name: "Josef",
-    amount: 450500,
-    sex: 'M',
-    is_married: true
-  }
-];
 
-var dataSet2 = [
-  {
-    name: "Johnson",
-    total: 25,
-    remainig: 16
-  },
-  {
-    name: "Josef",
-    total: 25,
-    remainig: 7
-  }
-];
 
 
 const validationSchema = yup.object().shape({
@@ -69,11 +36,14 @@ const validationSchema = yup.object().shape({
 
 const Dashboard = (props) => {
 
+
+
   const auth = useContext(AuthContext);
   const { currentUser } = auth
-  console.log(currentUser.uid)
+  console.log(currentUser)
 
   const [items, setItems] = React.useState([]);
+  const [filters, setFilters] = React.useState([]);
   const [caseInfo, selectCase] = React.useState(null);
   // const [orderList, setOrderList] = React.useState([]);
   const [formValues, setFormValues] = React.useState({ cost: '', status: '' });
@@ -121,6 +91,7 @@ const Dashboard = (props) => {
 
   useEffect(() => {
     console.log('fetch data')
+    // console.log(exportData)
     fetchData()
   }, [])
 
@@ -138,7 +109,13 @@ const Dashboard = (props) => {
     if (caseObj) {
       // await db.collection("customers").doc(currentUser.uid).collection('cart').add({ name: newItem, quantity: 1 });
       try {
-        await db.collection("cases").doc(newItemID).set({ ...caseObj, addedBy: currentUser.uid, dateAdded: format(new Date(), 'yyyy-MM-dd HH:mm') });
+        await db.collection("cases").doc(newItemID)
+          .set({
+            ...caseObj,
+            author: currentUser.email,
+            addedBy: currentUser.uid,
+            dateAdded: format(new Date(), 'yyyy-MM-dd HH:mm')
+          });
       } catch (error) {
         // alert(error);
         console.error(error)
@@ -190,6 +167,9 @@ const Dashboard = (props) => {
     const newItemID = guid();
     // console.log(caseObj)
     if (caseObj) {
+
+      caseObj.updatedBy = currentUser.email
+      caseObj.dateUpdated = format(new Date(), 'yyyy-MM-dd HH:mm')
       try {
         // await db.collection("customers").doc(currentUser.uid).collection('cart').add({ name: newItem, quantity: 1 });
         await db.collection("cases").doc(caseObj.id).update(caseObj);
@@ -207,6 +187,33 @@ const Dashboard = (props) => {
     // setNewItem('')
 
   };
+
+  const handleModifyCases = () => {
+    // console.log('users', users_data.length)
+    // const admin_id = 'TzLz92WY4kMh6T4mQoFwYRw5hU72'
+    // const admin_email = 'karen.broome@health.gov.bb'
+    // let i = 0;
+    // items.map(async (elem) => {
+    //   // elem.find()
+    //   if (elem.addedBy) {
+    //     console.log(elem.addedBy, elem.author)
+    //     const userData = users_data.find((user) => user.localId === elem.addedBy)
+    //     // console.log(userData.localId, userData.email)
+    //     i++
+    //     elem.author = userData.email
+    //     // await handleUpdateItem(elem)
+    //   } else {
+
+    //     elem.addedBy = admin_id
+    //     elem.author = admin_email
+    //     // await handleUpdateItem(elem)
+    //   }
+
+
+    // })
+    // console.log('number of users', i)
+
+  }
 
   const handleViewContact = (caseId) => {
     console.log('view contact', caseId)
@@ -257,7 +264,7 @@ const Dashboard = (props) => {
           value={filterValue}
           onClick={e => e.stopPropagation()}
           onChange={e => {
-            setFilter(e.target.value || undefined)
+            setFilters(e.target.value || undefined)
           }}
         >
           <option value="">All</option>
@@ -313,7 +320,7 @@ const Dashboard = (props) => {
           type="number"
           onChange={e => {
             const val = e.target.value
-            setFilter((old = []) => [val ? parseInt(val, 10) : undefined, old[1]])
+            setFilters((old = []) => [val ? parseInt(val, 10) : undefined, old[1]])
           }}
           placeholder={`Min (${min})`}
           style={{
@@ -322,12 +329,12 @@ const Dashboard = (props) => {
           }}
         />
         to
-      <input
+        <input
           value={filterValue[1] || ''}
           type="number"
           onChange={e => {
             const val = e.target.value
-            setFilter((old = []) => [old[0], val ? parseInt(val, 10) : undefined])
+            setFilters((old = []) => [old[0], val ? parseInt(val, 10) : undefined])
           }}
           placeholder={`Max (${max})`}
           style={{
@@ -364,6 +371,7 @@ const Dashboard = (props) => {
         accessor: d => d.case_name.trim().split(' ').reverse().join(', '),
 
       },
+
       {
         Header: "Symptoms",
         id: "symptoms",
@@ -434,10 +442,15 @@ const Dashboard = (props) => {
       },
       {
         Header: "Status",
-        accessor: "case_status",
+        id: "case_status",
+        accessor: d => d.case_status ? d.case_status.trim().toLowerCase() : '',
         Filter: SelectColumnFilter,
         filter: 'includes',
       },
+      // {
+      //   Header: "Index Case",
+      //   accessor: "case_indexId",
+      // },
       {
         Header: "Isolation",
         accessor: "case_isolation_center",
@@ -510,7 +523,7 @@ const Dashboard = (props) => {
       return {
         ...item,
         // case_indexCase: item.case_indexId.length > 0 ? cases.filter((elem) => elem.id === item.case_indexId)[0].case_name : '',
-        case_indexCase: item.case_indexId.length > 0 ?
+        case_indexCase: item.case_indexId && item.case_indexId.length > 0 ?
           item.case_indexId
             .split(',')
             .map((caseIndex) => {
@@ -534,7 +547,10 @@ const Dashboard = (props) => {
         case_nationality: nationalityList
       }
     })
-  console.log('export data', exportData)
+  // console.log('export data', exportData)
+
+  console.log('filter dates', filters, items)
+
   return (
     <>
       <div className="flex my-16">
@@ -543,6 +559,7 @@ const Dashboard = (props) => {
           <div className="flex justify-between mb-3">
             <h4 className="font-semibold">List of Index Cases</h4>
             <div>
+              {/* <button className="bg-yellow-400 py-2 px-4 rounded shadow text-sm text-white mx-3" onClick={handleModifyCases}>Modify Cases</button> */}
               <button className="bg-blue-500 py-2 px-4 rounded shadow text-sm text-white mx-3" onClick={handleToggleModal}>Add New Case</button>
               <ExcelFile
                 filename={'Export_Contact_Tracing_' + format(new Date(), 'yyyy-MM-ddHH:mm')}
@@ -574,8 +591,8 @@ const Dashboard = (props) => {
           <div>
             {items &&
               <>
-                <div className='flex flex-row'>
-                  <div className="w-10/12">
+                <div className='flex flex-row justify-center items-center'>
+                  <div className="w-6/12">
                     <input
                       className="shadow appearance-none border rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                       name="filterText"
@@ -584,6 +601,27 @@ const Dashboard = (props) => {
                       placeholder={"Search for a case by name"}
                     />
                   </div>
+                  <div className='w-3/12'>
+                    <div>
+                      <Flatpickr
+                        // data-enable-time
+                        placeholder="Click to filter between dates"
+                        className="shadow appearance-none border rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        value={filters.filterDates}
+                        // maxDate={'2020-04-03'}
+                        // options={{ maxDate: format(new Date(), 'yyyy-MM-dd') }}
+                        options={{ mode: 'range' }}
+                        // onChange={date => { console.log(date[0], date[1]) }}
+                        onChange={date => setFilters(prevStyle => ({
+                          ...prevStyle,
+                          'filterDates': date
+                        }))}
+                      />
+
+                    </div>
+
+                  </div>
+                  <button className="bg-transparent py-2 px-4 text-sm text-blue-500 mx-1" onClick={() => setFilters([])}>Reset Dates</button>
                   <div className="w-2/12">
                     <div className="px-3 content-center justify-center items-center">
                       <label className="block text-gray-500 font-normal">
@@ -599,13 +637,19 @@ const Dashboard = (props) => {
                   columns={columns}
                   initialState={{
                     sortBy: [{ id: "dateAdded", desc: true }],
+                    pageSize: 50,
                   }}
-                  data={items.filter((item) => item.archived != 1).filter((item) => indexChecked ? item.case_indexId == 0 : item).filter((item) => item.case_name.toLowerCase().includes(filterText))}
+                  data={items
+                    .filter((item) => item.archived != 1)
+                    .filter((item) => indexChecked ? item.case_indexId == 0 : item)
+                    .filter((item) => item.case_name.toLowerCase().includes(filterText))
+                    .filter((item) => filters && filters.filterDates?.length > 1 ? Date.parse(item.dateAdded) < Date.parse(filters.filterDates[1]) && Date.parse(item.dateAdded) > Date.parse(filters.filterDates[0]) : item)
+                  }
                 />
               </>}
           </div>
 
-          {caseInfo && (<Modal isOpen={isModalOpen} title={Object.entries(caseInfo).length === 0 ? "Add New Case" : "Case Details"} toggleModal={handleToggleModal} content={modalContent}>
+          {caseInfo && (<Modal isOpen={isModalOpen} title={Object.entries(caseInfo).length === 0 ? "Add New Case" : "Update Case"} toggleModal={handleToggleModal} content={modalContent}>
 
             <CaseForm
               editing={Object.entries(caseInfo).length > 0 ? true : false}

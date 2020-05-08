@@ -2,7 +2,7 @@ import React, { useMemo, useState, useEffect, useContext } from 'react'
 import { Link } from 'react-router-dom'
 import { format, compareAsc, parse, differenceInCalendarYears, differenceInYears, isValid } from 'date-fns'
 import axios from 'axios'
-
+import swal from 'sweetalert';
 import firebase from "../config/firebase";
 
 import { AuthContext } from '../context/Auth'
@@ -28,11 +28,13 @@ const Contacts = (props) => {
   console.log(currentUser.uid)
 
   const [items, setItems] = React.useState([]);
+  const [editMode, toggleEdit] = React.useState(false);
   const [patients, setPatients] = React.useState([]);
   const [caseInfo, setCase] = React.useState(null);
   const [caseId, setCaseId] = React.useState(0);
   const [caseAuthor, setCaseAuthor] = React.useState(null);
   const [indexCase, setIndexCase] = React.useState([]);
+  const [contactCase, setContactCase] = React.useState(null);
   const [formValues, setFormValues] = React.useState({ cost: '', status: '' });
   const [modalData, setModalData] = useState(null)
   const [isModalOpen, toggleModal] = React.useState(false);
@@ -71,12 +73,36 @@ const Contacts = (props) => {
         if (doc.data().case_indexId != 0) {
           //TODO: map case_indexId to get index names for each case
           const indices = doc.data().case_indexId.split(',')
+          console.log(indices)
           indices.map(async (index) => {
-            await db.collection('cases').doc(index).get().then((doc) => {
+            await db.collection('cases').doc(index).get().then(async (doc) => {
               if (doc.exists) {
-                console.log(doc.data().case_name)
+                console.log(index, doc.data().case_name, doc.data().case_indexId)
                 // setIndexCase({ ...doc.data(), id: doc.id })
-                setIndexCase(prevState => [...prevState || [], { ...doc.data(), id: doc.id }])
+                let caseInfo = { ...doc.data(), id: doc.id }
+                console.log(caseInfo)
+                if (caseInfo.case_indexId != 0) {
+                  await db.collection('cases').doc(caseInfo.case_indexId).get().then((doc) => {
+                    // doc.exists && console.log({ ...doc.data(), id: doc.id }))
+                    if (doc.exists) {
+                      console.log({ ...doc.data(), id: doc.id })
+                      if (doc.data().case_indexId === 0) {
+                        setIndexCase([{ ...doc.data(), id: doc.id }])
+                      }
+                    }
+                  })
+                }
+
+
+                // setContactCase(prevState => [...prevState || [], caseInfo])
+                if (doc.data().case_indexId === 0) {
+                  setIndexCase(prevState => [...prevState || [], { ...doc.data(), id: doc.id }])
+                  // setIndexCase([], { ...doc.data(), id: doc.id })
+                } else {
+                  console.log('primary contacts')
+                  setContactCase(prevState => [...prevState || [], { ...doc.data(), id: doc.id }])
+                }
+
               }
             })
           })
@@ -124,13 +150,16 @@ const Contacts = (props) => {
     console.log('fetch data', caseId)
     setCaseId(caseId)
     setIndexCase(null)
+    setContactCase(null)
     fetchData(caseId)
   }, [props])
 
   const handleToggleModal = () => {
     // fetchData()
-    setModalData({})
-    setModalData({ ...modalData, 'case_indexId': caseId })
+    // setModalData({})
+    const blank_data = {}
+    setModalData({ ...blank_data, 'case_indexId': caseId })
+    toggleEdit(false)
     toggleModal(!isModalOpen)
   }
 
@@ -139,9 +168,23 @@ const Contacts = (props) => {
     const db = firebase.firestore();
     const newItemID = guid();
     // console.log(newItem)
+    // console.log(caseObj)
+    // return;
     if (caseObj) {
       // await db.collection("customers").doc(currentUser.uid).collection('cart').add({ name: newItem, quantity: 1 });
-      await db.collection("cases").doc(newItemID).set({ ...caseObj, addedBy: currentUser.uid, dateAdded: format(new Date(), 'yyyy-MM-dd HH:mm') });
+      try {
+        await db.collection("cases").doc(newItemID)
+          .set({
+            ...caseObj,
+            author: currentUser.email,
+            addedBy: currentUser.uid,
+            dateAdded: format(new Date(), 'yyyy-MM-dd HH:mm')
+          });
+      } catch (error) {
+        // alert(error);
+        console.error(error)
+        // setFormError('Sorry but we do not recognize that email/password combination. Please try again')
+      }
       // await db.collection("cases").doc(newItemID).set({ ...caseObj, case_indexId: caseId, case_status: 'pending', dateAdded: format(new Date(), 'yyyy-MM-dd HH:mm') });
       // setItems([...items, { id: newItemID, name: newItem, quantity: 1 }])
     }
@@ -157,10 +200,21 @@ const Contacts = (props) => {
     const db = firebase.firestore();
     const newItemID = guid();
     // console.log(newItem)
+    // console.log(caseObj)
+    // return;
     if (caseObj) {
-      // await db.collection("customers").doc(currentUser.uid).collection('cart').add({ name: newItem, quantity: 1 });
-      await db.collection("cases").doc(caseObj.id).update(caseObj);
-      // setItems([...items, { id: newItemID, name: newItem, quantity: 1 }])
+
+      caseObj.updatedBy = currentUser.email
+      caseObj.dateUpdated = format(new Date(), 'yyyy-MM-dd HH:mm')
+      try {
+        // await db.collection("customers").doc(currentUser.uid).collection('cart').add({ name: newItem, quantity: 1 });
+        await db.collection("cases").doc(caseObj.id).update(caseObj);
+        // setItems([...items, { id: newItemID, name: newItem, quantity: 1 }])
+      } catch (error) {
+        // alert(error);
+        console.error(error)
+        // setFormError('Sorry but we do not recognize that email/password combination. Please try again')
+      }
     }
 
     toggleModal(!isModalOpen)
@@ -168,6 +222,36 @@ const Contacts = (props) => {
     // setNewItem('')
 
   };
+
+  const handleRemoveItem = (caseObj) => {
+
+    const db = firebase.firestore();
+    console.log(caseObj.id)
+    swal({
+      title: "Are you sure?",
+      text: "Once deleted, you will not be able to recover this record!",
+      icon: "warning",
+      buttons: true,
+      dangerMode: true,
+    })
+      .then(async (value) => {
+        // console.log(value)
+        if (value) {
+          try {
+            // await db.collection("customers").doc(currentUser.uid).collection('cart').add({ name: newItem, quantity: 1 });
+            await db.collection("cases").doc(caseObj.id).update({ archived: 1 });
+            toggleModal(!isModalOpen)
+            fetchData(caseId)
+          } catch (error) {
+            // alert(error);
+            console.error(error)
+            // setFormError('Sorry but we do not recognize that email/password combination. Please try again')
+          }
+        }
+
+
+      });
+  }
 
   const handleViewContact = (caseId) => {
     console.log('view contact', caseId, caseInfo)
@@ -281,7 +365,7 @@ const Contacts = (props) => {
           <button className="bg-white hover:bg-gray-100 text-gray-800 font-semibold text-xs py-2 px-2 rounded shadow"
             onClick={() => {
               console.log(row.original.case_name);
-
+              toggleEdit(true)
               setModalData(row.original)
               // setModalContent({ modalTitle: 'Order Details', customerId: row.original.customerId, confirmText: 'Ok' })
               toggleModal(!isModalOpen)
@@ -301,12 +385,13 @@ const Contacts = (props) => {
 
   ]
     ;
-  console.log(items, caseInfo, indexCase)
+  // console.log(items, caseInfo, indexCase)
+  console.log(indexCase)
   return (
     <>
-      <div class="container flex my-16">
+      <div class="flex my-16">
 
-        <div class="w-1/5  h-50">
+        <div class="p-5 h-50">
           <div class="max-w-sm bg-white shadow-lg rounded-lg overflow-hidden my-4">
             {/* <img class="w-full h-56 object-cover object-center" src="https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=334&q=80" alt="avatar" /> */}
             <div class="flex items-center px-6 py-3 bg-gray-900">
@@ -321,18 +406,20 @@ const Contacts = (props) => {
 
                 {/* <p className='text-xs'>{caseInfo.case_indexId}</p> */}
                 {indexCase && (
-                  <p className="text-xs">
+                  <div className="text-xs">
                     Index Case(s):{' '}
                     <ul>
-                      {indexCase.map((item) => <li><Link className="text-blue-500 hover:underline" to={`${item.id}`}>{item.case_name}</Link></li>)}
+                      {indexCase.map((item, index) => <li key={index}><Link className="text-blue-500 hover:underline" to={`${item.id}`}>{item.case_name}</Link></li>)}
                     </ul>
-
-
-                    {/* {'  '}
-                    <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full">
-                      Change
-                    </button> */}
-                  </p>
+                  </div>
+                )}
+                {contactCase && (
+                  <div className="text-xs">
+                    Primary Contact(s):{' '}
+                    <ul>
+                      {contactCase.map((item, index) => <li key={index}><Link className="text-blue-500 hover:underline" to={`${item.id}`}>{item.case_name}</Link></li>)}
+                    </ul>
+                  </div>
                 )}
                 <h2 class="text-md pt-3 font-semibold text-gray-800">Status</h2>
                 <p class="text-sm text-gray-700">{caseInfo.case_status}</p>
@@ -341,9 +428,9 @@ const Contacts = (props) => {
                 <h2 class="text-md pt-3 font-semibold text-gray-800">Exposure Date</h2>
                 <p class="text-sm text-gray-700">{caseInfo.case_exposure_date}</p>
                 <h2 class="text-md pt-3 font-semibold text-gray-800">Countries Visited</h2>
-                <p class="text-sm text-gray-700">{caseInfo.case_country && caseInfo.case_country.map(item => (<span>{item.label}, </span>))}</p>
+                <p class="text-sm text-gray-700">{caseInfo.case_country && caseInfo.case_country.map((item, index) => (<span key={index}>{item.label}, </span>))}</p>
                 <h2 class="text-md pt-3 font-semibold text-gray-800">Symptoms</h2>
-                <p class="text-sm text-gray-700">{caseInfo.case_symptoms && caseInfo.case_symptoms.map(item => (<span>{item.label}, </span>))}</p>
+                <p class="text-sm text-gray-700">{caseInfo.case_symptoms && caseInfo.case_symptoms.map((item, index) => (<span key={index}>{item.label}, </span>))}</p>
                 {/* <p class="text-sm text-gray-700">{caseInfo.case_symptoms}</p> */}
 
                 <h2 class="text-md pt-3 font-semibold text-gray-800">Gender</h2>
@@ -359,12 +446,25 @@ const Contacts = (props) => {
                 <h2 class="text-md pt-3 font-semibold text-gray-800">Address</h2>
                 <p class="text-sm text-gray-700">{caseInfo.case_address}</p>
                 <h2 class="text-md pt-3 font-semibold text-gray-800">Conditions</h2>
-                <p class="text-sm text-gray-700">{caseInfo.case_conditions && caseInfo.case_conditions.map(item => (<span>{item.label}, </span>))}</p>
+                <p class="text-sm text-gray-700">{caseInfo.case_conditions && caseInfo.case_conditions.map((item, index) => (<span key={index}>{item.label}, </span>))}</p>
                 <h2 class="text-md pt-3 font-semibold text-gray-800">Notes</h2>
                 <p class="text-sm text-gray-700">{caseInfo.case_notes}</p>
-                <h2 class="text-md pt-3 font-semibold text-gray-800">Added By</h2>
-                <p class="text-xs text-blue-500">{caseInfo.addedBy}</p>
-                {caseAuthor && <p class="text-xs text-blue-500">{caseAuthor}</p>}
+                {currentUser.admin && (
+                  <>
+                    <h2 class="text-md pt-3 font-semibold text-gray-800">Added By</h2>
+                    {caseInfo.author && <p class="text-xs text-blue-500">{caseInfo.author}</p>}
+                  </>
+                )}
+
+                {currentUser.admin && currentUser.updatedBy && (
+                  <>
+                    <h2 class="text-md pt-3 font-semibold text-gray-800">Last Updated</h2>
+                    {caseInfo.dateUpdated && <p class="text-xs text-blue-500">{caseInfo.dateUpdated}</p>}
+                    <h2 class="text-md pt-3 font-semibold text-gray-800">Updated By</h2>
+                    {caseInfo.updatedBy && <p class="text-xs text-blue-500">{caseInfo.updatedBy}</p>}
+                  </>
+                )}
+
 
 
                 {/* <div class="flex items-center mt-4 text-gray-700">
@@ -391,7 +491,7 @@ const Contacts = (props) => {
           </div>
 
         </div>
-        <div class="w-4/5 p-5 h-50">
+        <div class="p-5 h-50">
           <div className="flex justify-between">
             <h4>List of Contacts</h4>
             <button class="bg-blue-500 py-2 px-4 rounded text-white" onClick={handleToggleModal}>Add New Contact</button>
@@ -404,22 +504,25 @@ const Contacts = (props) => {
               // title="Order History"
               initialState={{
                 sortBy: [{ id: "dateAdded", desc: true }],
+                pageSize: 50,
               }}
               columns={columns}
               data={items.filter((item) => item.archived != 1)}
+
             />}
           </div>
           {modalData && (
-            <Modal isOpen={isModalOpen} title={Object.entries(modalData).length === 0 ? "Add New Contact" : "Contact Details"} toggleModal={handleToggleModal} content={modalContent}>
+            <Modal isOpen={isModalOpen} title={!editMode ? "Add New Contact" : "Update Case"} toggleModal={handleToggleModal} content={modalContent}>
 
               <CaseForm
-                editing={Object.entries(modalData).length > 0 ? true : false}
+                editing={editMode ? true : false}
                 // caseData={{ ...modalData, 'case_indexId': caseId }}
                 caseData={modalData}
                 patients={patients}
                 onAdd={(data) => handleAddItem(data)}
                 onUpdate={((data) => handleUpdateItem(data))}
                 onCancel={handleToggleModal}
+                onRemove={data => handleRemoveItem(data)}
               />
 
             </Modal>

@@ -75,7 +75,7 @@ export default function Table({ title, columns, data, fixed, initialState }) {
     return (
         <>
             <div className="mb-4">
-                <label className="block text-gray-700 text-lg font-bold mb-2" for="filterText">
+                <label className="block text-gray-700 text-lg font-bold mb-2" >
                     {title}
                 </label>
                 {/* <input
