@@ -50,3 +50,16 @@ body.modal-active {
     transform: rotate(360deg);
   }
 }
+
+/* Custom tooltip styles */
+.tooltip .tooltip-text {
+  visibility: hidden;
+  text-align: center;
+  padding: 2px 6px;
+  position: absolute;
+  z-index: 100;
+}
+.tooltip:hover .tooltip-text {
+  visibility: visible;
+}
+

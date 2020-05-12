@@ -1,7 +1,7 @@
-import React, { useState, useContext } from "react";
+import React, { useState } from "react";
 import firebase from "../config/firebase";
-import Navbar from '../components/Navbar'
-import { AuthContext } from '../context/Auth'
+// import Navbar from '../components/Navbar'
+// import { AuthContext } from '../context/Auth'
 
 import * as yup from 'yup';
 import useYup from '@usereact/use-yup'
@@ -13,9 +13,9 @@ const validationSchema = yup.object().shape({
 });
 
 const Profile = () => {
-    const auth = useContext(AuthContext);
+    // const auth = useContext(AuthContext);
     // console.log(auth)
-    const { currentUser } = auth
+    // const { currentUser } = auth
 
     const [values, setValues] = useState({
         email: '',

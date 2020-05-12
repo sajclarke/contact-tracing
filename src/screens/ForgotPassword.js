@@ -1,7 +1,6 @@
-import React, { useState, useCallback } from "react";
+import React, { useState } from "react";
 import { withRouter } from "react-router";
 import app from "../config/firebase.js";
-import { AuthContext } from "../context/Auth.js";
 
 import * as yup from 'yup';
 import useYup from '@usereact/use-yup'

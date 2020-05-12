@@ -1,7 +1,7 @@
-import React, { useMemo, useState, useEffect, useContext } from 'react'
+import React, { useState, useEffect, useContext } from 'react'
 import { Link } from 'react-router-dom'
-import { format, compareAsc, parse, differenceInYears, differenceInDays, isValid } from 'date-fns'
-import axios from 'axios'
+import { format, parse, differenceInYears, differenceInDays, isValid } from 'date-fns'
+
 import swal from 'sweetalert';
 import firebase from "../config/firebase";
 
@@ -9,17 +9,16 @@ import { AuthContext } from '../context/Auth'
 
 import Table from '../components/ReactTable'
 import Modal from '../components/Modal'
-import AlertModal from '../components/AlertModal'
 import CaseForm from '../components/CaseForm'
 
-import * as yup from 'yup';
-import useYup from '@usereact/use-yup'
+// import * as yup from 'yup';
+// import useYup from '@usereact/use-yup'
 
 
-const validationSchema = yup.object().shape({
-  order_cost: yup.number().min(0).required(),
-  order_status: yup.string().required()
-});
+// const validationSchema = yup.object().shape({
+//   order_cost: yup.number().min(0).required(),
+//   order_status: yup.string().required()
+// });
 
 const Contacts = (props) => {
 
@@ -27,25 +26,25 @@ const Contacts = (props) => {
   const { currentUser } = auth
   console.log(currentUser.uid)
 
-  const [items, setItems] = React.useState([]);
-  const [editMode, toggleEdit] = React.useState(false);
-  const [patients, setPatients] = React.useState([]);
-  const [caseInfo, setCase] = React.useState(null);
-  const [caseId, setCaseId] = React.useState(0);
-  const [caseAuthor, setCaseAuthor] = React.useState(null);
-  const [indexCase, setIndexCase] = React.useState([]);
-  const [contactCase, setContactCase] = React.useState(null);
-  const [formValues, setFormValues] = React.useState({ cost: '', status: '' });
+  const [items, setItems] = useState([]);
+  const [editMode, toggleEdit] = useState(false);
+  const [patients, setPatients] = useState([]);
+  const [caseInfo, setCase] = useState(null);
+  const [caseId, setCaseId] = useState(0);
+  // const [caseAuthor, setCaseAuthor] = React.useState(null);
+  const [indexCase, setIndexCase] = useState([]);
+  const [contactCase, setContactCase] = useState(null);
+  // const [formValues, setFormValues] = useState({ cost: '', status: '' });
   const [modalData, setModalData] = useState(null)
-  const [isModalOpen, toggleModal] = React.useState(false);
-  const [isCancelModalOpen, toggleCancelModal] = React.useState(false);
-  const [modalContent, setModalContent] = React.useState('');
+  const [isModalOpen, toggleModal] = useState(false);
+  // const [isCancelModalOpen, toggleCancelModal] = useState(false);
+  const [modalContent, setModalContent] = useState('');
 
-  const [formError, setFormError] = useState('')
+  // const [formError, setFormError] = useState('')
 
-  const { errors, validate } = useYup(formValues, validationSchema, {
-    validateOnChange: false
-  })
+  // const { errors, validate } = useYup(formValues, validationSchema, {
+  //   validateOnChange: false
+  // })
 
   let guid = () => {
     let s4 = () => {
@@ -70,7 +69,7 @@ const Contacts = (props) => {
         console.log("Document data:", doc.data());
         setCase({ ...doc.data(), id: doc.id })
 
-        if (doc.data().case_indexId != 0) {
+        if (doc.data().case_indexId !== 0) {
           //TODO: map case_indexId to get index names for each case
           const indices = doc.data().case_indexId.split(',')
           console.log(indices)
@@ -81,7 +80,7 @@ const Contacts = (props) => {
                 // setIndexCase({ ...doc.data(), id: doc.id })
                 let caseInfo = { ...doc.data(), id: doc.id }
                 console.log(caseInfo)
-                if (caseInfo.case_indexId != 0) {
+                if (caseInfo.case_indexId !== 0) {
                   await db.collection('cases').doc(caseInfo.case_indexId).get().then((doc) => {
                     // doc.exists && console.log({ ...doc.data(), id: doc.id }))
                     if (doc.exists) {
@@ -198,7 +197,7 @@ const Contacts = (props) => {
   const handleUpdateItem = async (caseObj) => {
 
     const db = firebase.firestore();
-    const newItemID = guid();
+    // const newItemID = guid();
     // console.log(newItem)
     // console.log(caseObj)
     // return;
@@ -361,7 +360,7 @@ const Contacts = (props) => {
       accessor: 'action',
       disableFilters: true,
       Cell: ({ cell: { row } }) => (
-        <div class="flex justify-between">
+        <div className="flex justify-between">
           <button className="bg-white hover:bg-gray-100 text-gray-800 font-semibold text-xs py-2 px-2 rounded shadow"
             onClick={() => {
               console.log(row.original.case_name);
@@ -389,20 +388,20 @@ const Contacts = (props) => {
   console.log(indexCase)
   return (
     <>
-      <div class="flex my-16">
+      <div className="flex my-6">
 
-        <div class="p-5 h-50">
-          <div class="max-w-sm bg-white shadow-lg rounded-lg overflow-hidden my-4">
-            {/* <img class="w-full h-56 object-cover object-center" src="https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=334&q=80" alt="avatar" /> */}
-            <div class="flex items-center px-6 py-3 bg-gray-900">
-              {/* <svg class="h-6 w-6 text-white fill-current" viewBox="0 0 512 512">
+        <div className="p-5 h-50">
+          <div className="max-w-sm bg-white shadow-lg rounded-lg overflow-hidden my-4">
+            {/* <img className="w-full h-56 object-cover object-center" src="https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=334&q=80" alt="avatar" /> */}
+            <div className="flex items-center px-6 py-3 bg-gray-900">
+              {/* <svg className="h-6 w-6 text-white fill-current" viewBox="0 0 512 512">
                 <path d="M256 48C150 48 64 136.2 64 245.1v153.3c0 36.3 28.6 65.7 64 65.7h64V288h-85.3v-42.9c0-84.7 66.8-153.3 149.3-153.3s149.3 68.5 149.3 153.3V288H320v176h64c35.4 0 64-29.3 64-65.7V245.1C448 136.2 362 48 256 48z" />
               </svg> */}
-              <h1 class="mx-3 text-white font-semibold text-lg">Case Info</h1>
+              <h1 className="mx-3 text-white font-semibold text-lg">Case Info</h1>
             </div>
             {caseInfo && (
-              <div class="py-4 px-6">
-                <h1 class="text-2xl font-semibold text-gray-800">{caseInfo.case_name}</h1>
+              <div className="py-4 px-6">
+                <h1 className="text-2xl font-semibold text-gray-800">{caseInfo.case_name}</h1>
 
                 {/* <p className='text-xs'>{caseInfo.case_indexId}</p> */}
                 {indexCase && (
@@ -421,46 +420,46 @@ const Contacts = (props) => {
                     </ul>
                   </div>
                 )}
-                <h2 class="text-md pt-3 font-semibold text-gray-800">Status</h2>
-                <p class="text-sm text-gray-700">{caseInfo.case_status}</p>
-                <h2 class="text-md pt-3 font-semibold text-gray-800">Exposure Location</h2>
-                <p class="text-sm text-gray-700">{caseInfo.case_exposure_location}</p>
-                <h2 class="text-md pt-3 font-semibold text-gray-800">Exposure Date</h2>
-                <p class="text-sm text-gray-700">{caseInfo.case_exposure_date}</p>
-                <h2 class="text-md pt-3 font-semibold text-gray-800">Countries Visited</h2>
-                <p class="text-sm text-gray-700">{caseInfo.case_country && caseInfo.case_country.map((item, index) => (<span key={index}>{item.label}, </span>))}</p>
-                <h2 class="text-md pt-3 font-semibold text-gray-800">Symptoms</h2>
-                <p class="text-sm text-gray-700">{caseInfo.case_symptoms && caseInfo.case_symptoms.map((item, index) => (<span key={index}>{item.label}, </span>))}</p>
-                {/* <p class="text-sm text-gray-700">{caseInfo.case_symptoms}</p> */}
+                <h2 className="text-md pt-3 font-semibold text-gray-800">Status</h2>
+                <p className="text-sm text-gray-700">{caseInfo.case_status}</p>
+                <h2 className="text-md pt-3 font-semibold text-gray-800">Exposure Location</h2>
+                <p className="text-sm text-gray-700">{caseInfo.case_exposure_location}</p>
+                <h2 className="text-md pt-3 font-semibold text-gray-800">Exposure Date</h2>
+                <p className="text-sm text-gray-700">{caseInfo.case_exposure_date}</p>
+                <h2 className="text-md pt-3 font-semibold text-gray-800">Countries Visited</h2>
+                <p className="text-sm text-gray-700">{caseInfo.case_country && caseInfo.case_country.map((item, index) => (<span key={index}>{item.label}, </span>))}</p>
+                <h2 className="text-md pt-3 font-semibold text-gray-800">Symptoms</h2>
+                <p className="text-sm text-gray-700">{caseInfo.case_symptoms && caseInfo.case_symptoms.map((item, index) => (<span key={index}>{item.label}, </span>))}</p>
+                {/* <p className="text-sm text-gray-700">{caseInfo.case_symptoms}</p> */}
 
-                <h2 class="text-md pt-3 font-semibold text-gray-800">Gender</h2>
-                <p class="text-sm text-gray-700">{caseInfo.case_gender}</p>
-                <h2 class="text-md pt-3 font-semibold text-gray-800">Age</h2>
-                <p class="text-sm text-gray-700">{differenceInYears(new Date(), parse(caseInfo.case_birthdate, 'yyyy-MM-dd', new Date()))} yrs</p>
-                <h2 class="text-md pt-3 font-semibold text-gray-800">Home #</h2>
-                <p class="text-sm text-gray-700">{caseInfo.case_home_number}</p>
-                <h2 class="text-md pt-3 font-semibold text-gray-800">Mobile #</h2>
-                <p class="text-sm text-gray-700">{caseInfo.case_mobile_number}</p>
+                <h2 className="text-md pt-3 font-semibold text-gray-800">Gender</h2>
+                <p className="text-sm text-gray-700">{caseInfo.case_gender}</p>
+                <h2 className="text-md pt-3 font-semibold text-gray-800">Age</h2>
+                <p className="text-sm text-gray-700">{differenceInYears(new Date(), parse(caseInfo.case_birthdate, 'yyyy-MM-dd', new Date()))} yrs</p>
+                <h2 className="text-md pt-3 font-semibold text-gray-800">Home #</h2>
+                <p className="text-sm text-gray-700">{caseInfo.case_home_number}</p>
+                <h2 className="text-md pt-3 font-semibold text-gray-800">Mobile #</h2>
+                <p className="text-sm text-gray-700">{caseInfo.case_mobile_number}</p>
 
 
-                <h2 class="text-md pt-3 font-semibold text-gray-800">Address</h2>
-                <p class="text-sm text-gray-700">{caseInfo.case_address}</p>
-                <h2 class="text-md pt-3 font-semibold text-gray-800">Conditions</h2>
-                <p class="text-sm text-gray-700">{caseInfo.case_conditions && caseInfo.case_conditions.map((item, index) => (<span key={index}>{item.label}, </span>))}</p>
-                <h2 class="text-md pt-3 font-semibold text-gray-800">Notes</h2>
-                <p class="text-sm text-gray-700">{caseInfo.case_notes}</p>
+                <h2 className="text-md pt-3 font-semibold text-gray-800">Address</h2>
+                <p className="text-sm text-gray-700">{caseInfo.case_address}</p>
+                <h2 className="text-md pt-3 font-semibold text-gray-800">Conditions</h2>
+                <p className="text-sm text-gray-700">{caseInfo.case_conditions && caseInfo.case_conditions.map((item, index) => (<span key={index}>{item.label}, </span>))}</p>
+                <h2 className="text-md pt-3 font-semibold text-gray-800">Notes</h2>
+                <p className="text-sm text-gray-700">{caseInfo.case_notes}</p>
                 {currentUser.admin && (
                   <>
-                    <h2 class="text-md pt-3 font-semibold text-gray-800">Added By</h2>
-                    {caseInfo.author && <p class="text-xs text-gray-500">{caseInfo.author}</p>}
+                    <h2 className="text-md pt-3 font-semibold text-gray-800">Added By</h2>
+                    {caseInfo.author && <p className="text-xs text-gray-500">{caseInfo.author}</p>}
                   </>
                 )}
 
                 {currentUser.admin && caseInfo.updatedBy && (
                   <>
-                    <h2 class="text-md pt-3 font-semibold text-gray-800">Last Updated By</h2>
-                    {caseInfo.updatedBy && <p class="text-xs text-gray-500">{caseInfo.updatedBy}</p>}
-                    {caseInfo.dateUpdated && <p class="text-xs text-gray-500">({Number(differenceInDays(new Date(), new Date(caseInfo.dateUpdated)))} days ago)</p>}
+                    <h2 className="text-md pt-3 font-semibold text-gray-800">Last Updated By</h2>
+                    {caseInfo.updatedBy && <p className="text-xs text-gray-500">{caseInfo.updatedBy}</p>}
+                    {caseInfo.dateUpdated && <p className="text-xs text-gray-500">({Number(differenceInDays(new Date(), new Date(caseInfo.dateUpdated)))} days ago)</p>}
                     {/* <span className='text-sm'>by</span>{' '} */}
 
                   </>
@@ -468,23 +467,23 @@ const Contacts = (props) => {
 
 
 
-                {/* <div class="flex items-center mt-4 text-gray-700">
-                  <svg class="h-6 w-6 fill-current" viewBox="0 0 512 512">
+                {/* <div className="flex items-center mt-4 text-gray-700">
+                  <svg className="h-6 w-6 fill-current" viewBox="0 0 512 512">
                     <path d="M239.208 343.937c-17.78 10.103-38.342 15.876-60.255 15.876-21.909 0-42.467-5.771-60.246-15.87C71.544 358.331 42.643 406 32 448h293.912c-10.639-42-39.537-89.683-86.704-104.063zM178.953 120.035c-58.479 0-105.886 47.394-105.886 105.858 0 58.464 47.407 105.857 105.886 105.857s105.886-47.394 105.886-105.857c0-58.464-47.408-105.858-105.886-105.858zm0 186.488c-33.671 0-62.445-22.513-73.997-50.523H252.95c-11.554 28.011-40.326 50.523-73.997 50.523z" /><g><path d="M322.602 384H480c-10.638-42-39.537-81.691-86.703-96.072-17.781 10.104-38.343 15.873-60.256 15.873-14.823 0-29.024-2.654-42.168-7.49-7.445 12.47-16.927 25.592-27.974 34.906C289.245 341.354 309.146 364 322.602 384zM306.545 200h100.493c-11.554 28-40.327 50.293-73.997 50.293-8.875 0-17.404-1.692-25.375-4.51a128.411 128.411 0 0 1-6.52 25.118c10.066 3.174 20.779 4.862 31.895 4.862 58.479 0 105.886-47.41 105.886-105.872 0-58.465-47.407-105.866-105.886-105.866-37.49 0-70.427 19.703-89.243 49.09C275.607 131.383 298.961 163 306.545 200z" /></g>
                   </svg>
-                  <h1 class="px-2 text-sm">MerakiTeam</h1>
+                  <h1 className="px-2 text-sm">MerakiTeam</h1>
                 </div>
-                <div class="flex items-center mt-4 text-gray-700">
-                  <svg class="h-6 w-6 fill-current" viewBox="0 0 512 512">
+                <div className="flex items-center mt-4 text-gray-700">
+                  <svg className="h-6 w-6 fill-current" viewBox="0 0 512 512">
                     <path d="M256 32c-88.004 0-160 70.557-160 156.801C96 306.4 256 480 256 480s160-173.6 160-291.199C416 102.557 344.004 32 256 32zm0 212.801c-31.996 0-57.144-24.645-57.144-56 0-31.357 25.147-56 57.144-56s57.144 24.643 57.144 56c0 31.355-25.148 56-57.144 56z" />
                   </svg>
-                  <h1 class="px-2 text-sm">California</h1>
+                  <h1 className="px-2 text-sm">California</h1>
                 </div>
-                <div class="flex items-center mt-4 text-gray-700">
-                  <svg class="h-6 w-6 fill-current" viewBox="0 0 512 512">
+                <div className="flex items-center mt-4 text-gray-700">
+                  <svg className="h-6 w-6 fill-current" viewBox="0 0 512 512">
                     <path d="M437.332 80H74.668C51.199 80 32 99.198 32 122.667v266.666C32 412.802 51.199 432 74.668 432h362.664C460.801 432 480 412.802 480 389.333V122.667C480 99.198 460.801 80 437.332 80zM432 170.667L256 288 80 170.667V128l176 117.333L432 128v42.667z" />
                   </svg>
-                  <h1 class="px-2 text-sm">patterson@example.com</h1>
+                  <h1 className="px-2 text-sm">patterson@example.com</h1>
                 </div> */}
               </div>
 
@@ -492,10 +491,10 @@ const Contacts = (props) => {
           </div>
 
         </div>
-        <div class="p-5 h-50">
+        <div className="p-5 h-50">
           <div className="flex justify-between">
             <h4>List of Contacts</h4>
-            <button class="bg-blue-500 py-2 px-4 rounded text-white" onClick={handleToggleModal}>Add New Contact</button>
+            <button className="px-4 py-2 mt-3 font-medium text-white bg-blue-500 rounded hover:bg-blue-700 md:ml-6 md:mt-0 text-sm leading-tight" onClick={handleToggleModal}>Add New Contact</button>
           </div>
           <div>
             {items && <Table
@@ -508,7 +507,7 @@ const Contacts = (props) => {
                 pageSize: 50,
               }}
               columns={columns}
-              data={items.filter((item) => item.archived != 1)}
+              data={items.filter((item) => item.archived !== 1)}
 
             />}
           </div>
@@ -531,7 +530,7 @@ const Contacts = (props) => {
         </div>
       </div>
 
-      {/* <div class="w-9/12 content-center items-center justify-center">
+      {/* <div className="w-9/12 content-center items-center justify-center">
 
         <AlertModal
           isOpen={isCancelModalOpen}

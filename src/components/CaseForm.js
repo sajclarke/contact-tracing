@@ -1,7 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react'
-import { format, compareAsc, parse, differenceInCalendarYears, differenceInYears, isValid } from 'date-fns'
+import { format, differenceInYears, isValid } from 'date-fns'
 // import isValid from 'date-fns/is_valid'
-import InputMask from "react-input-mask";
+// import InputMask from "react-input-mask";
 import 'react-phone-number-input/style.css'
 import PhoneInput from 'react-phone-number-input'
 import Select from 'react-select'
@@ -20,8 +20,8 @@ import * as yup from 'yup';
 import useYup from '@usereact/use-yup'
 
 // const phoneRegExp = /^((\\+[1-9]{1,4}[ \\-]*)|(\\([0-9]{2,3}\\)[ \\-]*)|([0-9]{2,4})[ \\-]*)*?[0-9]{3,4}?[ \\-]*[0-9]{3,4}?$/
-const phoneRegExp = /^((\(\d{3}\) ?)|(\d{3}-))?\d{3}-\d{4}$/
-const dateStringRegExp = /([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))$/
+// const phoneRegExp = /^((\(\d{3}\) ?)|(\d{3}-))?\d{3}-\d{4}$/
+// const dateStringRegExp = /([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))$/
 const validationSchema = yup.object().shape({
     case_name: yup.string().required('Name is required'),
     case_exposure_location: yup.string(),
@@ -134,8 +134,8 @@ const CaseForm = (props) => {
 
     const [values, setValues] = useState(defaultObj)
     const [patientOptions, setPatientOptions] = useState([])
-    const [formError, setFormError] = useState('')
-    const [formSuccess, setFormSuccess] = useState('')
+    // const [formError, setFormError] = useState('')
+    // const [formSuccess, setFormSuccess] = useState('')
 
     const { errors, validate } = useYup(values, validationSchema, {
         validateOnChange: true
@@ -180,8 +180,6 @@ const CaseForm = (props) => {
 
         if (Object.entries(errors).length < 1) {
 
-
-
             if (props.editing) {
                 props.onUpdate(values)
             } else {
@@ -191,7 +189,7 @@ const CaseForm = (props) => {
                 const data = await db.collection('cases').where('case_name', '==', values.case_name.trim()).get();
                 // const duplicates = data.docs.map(doc => ({ case_name: doc.data().case_name, birthdate: doc.data().case_birthdate, case_age: doc.data().case_age, id: doc.id }))
                 const duplicates = data.docs.map(doc => ({ ...doc.data(), id: doc.id }))
-                console.log(duplicates.filter(item => item.archived != 1))
+                console.log(duplicates.filter(item => item.archived !== 1))
                 // return;
                 if (duplicates.length > 0) {
                     swal({
@@ -201,25 +199,19 @@ const CaseForm = (props) => {
                         buttons: true,
                         dangerMode: true,
                     })
-                        .then(async (value) => {
-                            // console.log(value)
-                            if (value) {
+                        .then(async (result) => {
+                            if (result) {
                                 try {
+                                    values.isDuplicate = true
                                     props.onAdd(values)
-
                                     resetForm()
-
                                 } catch (error) {
                                     console.error(error)
                                 }
                             }
                         });
                 } else {
-                    // if (props.editing) {
-                    //     props.onUpdate(values)
-                    // } else {
-                    //     props.onAdd(values)
-                    // }
+
                     props.onAdd(values)
                     resetForm()
                 }
@@ -249,11 +241,11 @@ const CaseForm = (props) => {
     // console.log(values)
     // console.log(patientOptions)
 
-    const patientList = [{ label: "No", value: 0 }, ...patientOptions];
+    // const patientList = [{ label: "No", value: 0 }, ...patientOptions];
     return (
 
         <>
-            {formSuccess && (
+            {/* {formSuccess && (
                 <div class="bg-teal-100 border-t-1 border-teal-500 rounded-b text-teal-900 px-4 py-3 mb-3 shadow-md" role="alert">
                     <div class="flex">
                         <div class="py-1"><svg class="fill-current h-6 w-6 text-teal-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M2.93 17.07A10 10 0 1 1 17.07 2.93 10 10 0 0 1 2.93 17.07zm12.73-1.41A8 8 0 1 0 4.34 4.34a8 8 0 0 0 11.32 11.32zM9 11V9h2v6H9v-4zm0-6h2v2H9V5z" /></svg></div>
@@ -263,13 +255,13 @@ const CaseForm = (props) => {
                         </div>
                     </div>
                 </div>
-            )}
-            {formError && (
+            )} */}
+            {/* {formError && (
                 <div class="w-100 m-3 bg-red-100 border border-red-400 text-red-700 px-4 py-3 mb-3 rounded relative" role="alert">
                     <strong class="font-bold">Error!</strong>
                     <span class="block sm:inline"> {formError}</span>
                 </div>
-            )}
+            )} */}
             <div className='text-left'>
                 <form className="w-full max-w-lg">
                     <div className="flex flex-wrap -mx-3 mb-6">
@@ -357,10 +349,10 @@ const CaseForm = (props) => {
                                 options={[{ label: "No", value: 0 }, ...patientOptions]}
                                 // value={values.case_indexId}
                                 // value={values.case_indexId == 0 ? { label: "No", value: 0 } : patientOptions.filter((item) => item.value === values.case_indexId)}
-                                value={(!values.case_indexId || values.case_indexId == 0) ?
+                                value={(!values.case_indexId || values.case_indexId === 0) ?
                                     { label: "No", value: 0 } :
                                     values.case_indexId.split(',').map(caseIndex => {
-                                        if (caseIndex == 0) {
+                                        if (caseIndex === 0) {
                                             return { label: "No", value: 0 }
                                         } else {
                                             // console.log(caseIndex, patientOptions.find((patient) => patient.value === caseIndex))
@@ -390,7 +382,7 @@ const CaseForm = (props) => {
                                 onChange={value => {
                                     console.log(value);
                                     if (value && value.length > 1) {
-                                        value = value.filter((item) => item.value != 0)
+                                        value = value.filter((item) => item.value !== 0)
                                     }
                                     setValues({
                                         ...values,

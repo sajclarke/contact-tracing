@@ -1,7 +1,7 @@
 import React from 'react'
 
 const Modal = (props) => {
-    const { isOpen, content, toggleModal, onConfirm } = props
+    const { isOpen, toggleModal } = props
     return (
         <div class={(isOpen
             ? "modal-active"

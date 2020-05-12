@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { useTable, useFilters, useSortBy, usePagination } from "react-table";
 import '../assets/Table.css'
 
@@ -6,7 +6,7 @@ import '../assets/Table.css'
 function DefaultColumnFilter({
     column: { filterValue, preFilteredRows, setFilter },
 }) {
-    const count = preFilteredRows.length
+    // const count = preFilteredRows.length
 
     return (
         <input
@@ -24,7 +24,7 @@ function DefaultColumnFilter({
 
 
 export default function Table({ title, columns, data, fixed, initialState }) {
-    const [filterInput, setFilterInput] = useState("");
+    // const [filterInput, setFilterInput] = useState("");
     // Use the state and functions returned from useTable to build your UI
 
     const defaultColumn = React.useMemo(
@@ -38,9 +38,9 @@ export default function Table({ title, columns, data, fixed, initialState }) {
         getTableProps,
         getTableBodyProps,
         headerGroups,
-        rows,
+        // rows,
         prepareRow,
-        setFilter,
+        // setFilter,
         page,
         canPreviousPage,
         canNextPage,
@@ -65,11 +65,7 @@ export default function Table({ title, columns, data, fixed, initialState }) {
 
 
 
-    const handleFilterChange = e => {
-        const value = e.target.value || undefined;
-        setFilter("case_name", value);
-        setFilterInput(value);
-    };
+
 
     // Render the UI for your table
     return (
@@ -78,13 +74,7 @@ export default function Table({ title, columns, data, fixed, initialState }) {
                 <label className="block text-gray-700 text-lg font-bold mb-2" >
                     {title}
                 </label>
-                {/* <input
-                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                    name="filterText"
-                    value={filterInput}
-                    onChange={handleFilterChange}
-                    placeholder={"Search for a customer by name"}
-                /> */}
+
             </div>
 
             <table className={(fixed ? "table-fixed" : "table-auto") + " w-full rounded border-solid border-1 border-gray-400"} {...getTableProps()}>

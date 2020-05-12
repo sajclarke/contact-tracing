@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect, useContext } from 'react'
-import { format, compareAsc, parse, differenceInCalendarYears, differenceInYears, isValid, isWithinRange } from 'date-fns'
-import { CSVLink, CSVDownload } from "react-csv";
-import axios from 'axios'
+import { format, parse, differenceInYears, isValid } from 'date-fns'
+// import { CSVLink, CSVDownload } from "react-csv";
+// import axios from 'axios'
 import swal from 'sweetalert';
 import firebase from "../config/firebase";
 
@@ -9,19 +9,16 @@ import { AuthContext } from '../context/Auth'
 
 import Table from '../components/ReactTable'
 import Modal from '../components/Modal'
-import AlertModal from '../components/AlertModal'
+// import AlertModal from '../components/AlertModal'
 import CaseForm from '../components/CaseForm'
 
-import * as yup from 'yup';
-import useYup from '@usereact/use-yup'
-
-import ReactExport from "react-data-export";
-
-import "flatpickr/dist/themes/material_green.css";
+// import * as yup from 'yup';
+// import useYup from '@usereact/use-yup'
 
 import Flatpickr from "react-flatpickr";
+import "flatpickr/dist/themes/material_green.css";
 
-
+import ReactExport from "react-data-export";
 const ExcelFile = ReactExport.ExcelFile;
 const ExcelSheet = ReactExport.ExcelFile.ExcelSheet;
 const ExcelColumn = ReactExport.ExcelFile.ExcelColumn;
@@ -29,14 +26,12 @@ const ExcelColumn = ReactExport.ExcelFile.ExcelColumn;
 
 
 
-const validationSchema = yup.object().shape({
-  order_cost: yup.number().min(0).required(),
-  order_status: yup.string().required()
-});
+// const validationSchema = yup.object().shape({
+//   order_cost: yup.number().min(0).required(),
+//   order_status: yup.string().required()
+// });
 
 const Dashboard = (props) => {
-
-
 
   const auth = useContext(AuthContext);
   const { currentUser } = auth
@@ -46,18 +41,18 @@ const Dashboard = (props) => {
   const [filters, setFilters] = React.useState([]);
   const [caseInfo, selectCase] = React.useState(null);
   // const [orderList, setOrderList] = React.useState([]);
-  const [formValues, setFormValues] = React.useState({ cost: '', status: '' });
+  // const [formValues, setFormValues] = React.useState({ cost: '', status: '' });
   const [filterText, setFilterText] = useState('')
   const [indexChecked, toggleIndexChecked] = useState(true)
   const [isModalOpen, toggleModal] = React.useState(false);
-  const [isCancelModalOpen, toggleCancelModal] = React.useState(false);
+  // const [isCancelModalOpen, toggleCancelModal] = React.useState(false);
   const [modalContent, setModalContent] = React.useState('');
 
-  const [formError, setFormError] = useState('')
+  // const [formError, setFormError] = useState('')
 
-  const { errors, validate } = useYup(formValues, validationSchema, {
-    validateOnChange: false
-  })
+  // const { errors, validate } = useYup(formValues, validationSchema, {
+  //   validateOnChange: false
+  // })
 
   let guid = () => {
     let s4 = () => {
@@ -69,15 +64,15 @@ const Dashboard = (props) => {
     return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
   }
 
-  const handleChange = e => {
-    const { name, value } = e.target
+  // const handleChange = e => {
+  //   const { name, value } = e.target
 
-    validate();
-    setFormValues({
-      ...formValues,
-      [name]: value
-    });
-  }
+  //   validate();
+  //   setFormValues({
+  //     ...formValues,
+  //     [name]: value
+  //   });
+  // }
 
   const fetchData = async () => {
 
@@ -119,7 +114,7 @@ const Dashboard = (props) => {
       } catch (error) {
         // alert(error);
         console.error(error)
-        setFormError('Sorry but we do not recognize that email/password combination. Please try again')
+        // setFormError('Sorry but we do not recognize that email/password combination. Please try again')
       }
 
       // setItems([...items, { id: newItemID, name: newItem, quantity: 1 }])
@@ -164,7 +159,7 @@ const Dashboard = (props) => {
   const handleUpdateItem = async (caseObj) => {
 
     const db = firebase.firestore();
-    const newItemID = guid();
+    // const newItemID = guid();
     // console.log(caseObj)
     if (caseObj) {
 
@@ -177,7 +172,7 @@ const Dashboard = (props) => {
       } catch (error) {
         // alert(error);
         console.error(error)
-        setFormError('Sorry but we do not recognize that email/password combination. Please try again')
+        // setFormError('Sorry but we do not recognize that email/password combination. Please try again')
       }
       // setItems([...items, { id: newItemID, name: newItem, quantity: 1 }])
     }
@@ -281,70 +276,7 @@ const Dashboard = (props) => {
     )
   }
 
-  // This is a custom UI for our 'between' or number range
-  // filter. It uses two number boxes and filters rows to
-  // ones that have values between the two
-  function NumberRangeColumnFilter({
-    column: { filterValue = [], preFilteredRows, setFilter, id },
-  }) {
-    const [min, max] = React.useMemo(() => {
-      let min = preFilteredRows.length ? preFilteredRows[0].values[id] : 0
-      let max = preFilteredRows.length ? preFilteredRows[0].values[id] : 0
-      preFilteredRows.forEach(row => {
-        min = Math.min(row.values[id], min)
-        max = Math.max(row.values[id], max)
-      })
-      return [min, max]
-    }, [id, preFilteredRows])
 
-    // const filters = () => {
-    //   let min = preFilteredRows.length ? preFilteredRows[0].values[id] : 0
-    //   let max = preFilteredRows.length ? preFilteredRows[0].values[id] : 0
-    //   preFilteredRows.forEach(row => {
-    //     min = Math.min(row.values[id], min)
-    //     max = Math.max(row.values[id], max)
-    //   })
-    //   return [min, max]
-    // }
-    // const min = 9
-    // const max = 80
-    // console.log(filters)
-    return (
-      <div
-        style={{
-          display: 'flex',
-        }}
-      >
-        <input
-          value={filterValue[0] || ''}
-          type="number"
-          onChange={e => {
-            const val = e.target.value
-            setFilters((old = []) => [val ? parseInt(val, 10) : undefined, old[1]])
-          }}
-          placeholder={`Min (${min})`}
-          style={{
-            width: '70px',
-            marginRight: '0.5rem',
-          }}
-        />
-        to
-        <input
-          value={filterValue[1] || ''}
-          type="number"
-          onChange={e => {
-            const val = e.target.value
-            setFilters((old = []) => [old[0], val ? parseInt(val, 10) : undefined])
-          }}
-          placeholder={`Max (${max})`}
-          style={{
-            width: '70px',
-            marginLeft: '0.5rem',
-          }}
-        />
-      </div>
-    )
-  }
 
 
   const columns = useMemo(
@@ -368,7 +300,21 @@ const Dashboard = (props) => {
         Header: "Name",
         // accessor: "case_name",
         id: "name",
-        accessor: d => d.case_name.trim().split(' ').reverse().join(', '),
+        // accessor: d => <div className='text-left p-2'><i className='fas fa-exclamation-triangle text-red-500 p-2'></i>{d.case_name.trim().split(' ').reverse().join(', ')}</div>,
+        Cell: (row, data) => {
+          const caseName = row.row.original.case_name.trim().split(' ').reverse().join(', ')
+          const { isDuplicate } = row.row.original
+          return (
+            <div className={'text-left p-2 ' + (isDuplicate ? 'tooltip' : '')}>
+              {isDuplicate && <>
+                <i className='fas fa-exclamation-triangle text-red-400 p-3'></i>
+                <span className='relative tooltip-text bg-red-300 p-3 -mt-6 -ml-6 rounded'>Possible duplicate</span>
+              </>
+              }{caseName}
+            </div>
+          )
+
+        },
 
       },
 
@@ -454,7 +400,7 @@ const Dashboard = (props) => {
       {
         Header: "Isolation",
         accessor: "case_isolation_center",
-        Cell: row => { return (<div style={row.row.original.case_indexId == 0 ? styles.highlightCell : {}}>{row.row.original.case_isolation_center}</div>) },
+        Cell: row => { return (<div style={row.row.original.case_indexId === 0 ? styles.highlightCell : {}}>{row.row.original.case_isolation_center}</div>) },
         Filter: SelectColumnFilter,
         filter: 'includes',
         // filterMethod: (filter, row) =>
@@ -502,14 +448,14 @@ const Dashboard = (props) => {
   );
 
   const cases = items
-  console.log(cases)
-  console.log(columns.map((item) => console.log(item)))
-  console.log('cases', items)
+  // console.log(cases)
+  // console.log(columns.map((item) => console.log(item)))
+  // console.log('cases', items)
 
   const tableColumns = ["case_address", "case_age", "case_birthdate", "case_catchment_area", "case_conditions", "case_country", "case_current_condition", "case_exposure_date", "case_exposure_location", "case_gender", "case_home_number", "case_indexCase", "case_living_partners", "case_mobile_number", "case_name", "case_nationality", "case_notes", "case_quarantine_location", "case_status", "case_symptoms", "dateAdded", "quarantine_period", "id", "case_isolation_center", "case_quarantine_period", "case_releasedate", "case_symptom_date", "addedBy", "archived", "case_symtpom_date"]
   // const tableColumns = ["case_address", "case_age", "case_birthdate"]
 
-  const exportData = items.filter((item) => item.archived != 1)
+  const exportData = items.filter((item) => item.archived !== 1)
     .map((item) => {
 
       let countryList, symptomsList, conditionsList, nationalityList
@@ -558,43 +504,27 @@ const Dashboard = (props) => {
     })
   // console.log('export data', exportData)
 
-  console.log('filter dates', filters, items)
+  // console.log('filter dates', filters, items)
 
   return (
     <>
-      <div className="flex my-16">
+      <div className="flex my-6">
 
         <div className="w-full p-2 h-50">
           <div className="flex justify-between mb-3">
             <h4 className="font-semibold">List of Index Cases</h4>
             <div>
               {/* <button className="bg-yellow-400 py-2 px-4 rounded shadow text-sm text-white mx-3" onClick={handleModifyCases}>Modify Cases</button> */}
-              <button className="bg-blue-500 py-2 px-4 rounded shadow text-sm text-white mx-3" onClick={handleToggleModal}>Add New Case</button>
-              <ExcelFile
+              <button className="px-4 py-2 mt-3 font-medium text-white bg-blue-500 rounded hover:bg-blue-700 md:ml-6 md:mt-0 text-sm leading-tight" onClick={handleToggleModal}>Add New Case</button>
+              {currentUser.admin && <ExcelFile
                 filename={'Export_Contact_Tracing_' + format(new Date(), 'yyyy-MM-ddHH:mm')}
-                element={<button className="bg-white hover:bg-gray-100 text-gray-800 font-semibold text-sm py-2 px-2 rounded shadow">Download Data</button>}
+                element={<button className="bg-white hover:bg-gray-100 text-gray-800 font-semibold text-sm py-2 px-2 rounded shadow">Export Data</button>}
               >
                 <ExcelSheet data={exportData} name="Patient Cases">
                   {tableColumns.map((elem, index) => <ExcelColumn key={index} label={elem} value={elem} />)}
-                  {/* <ExcelColumn label="Name" value="name" />
-                  <ExcelColumn label="Wallet Money" value="amount" />
-                  <ExcelColumn label="Gender" value="sex" />
-                  <ExcelColumn label="Marital Status"
-                    value={(col) => col.is_married ? "Married" : "Single"} /> */}
                 </ExcelSheet>
-                {/* <ExcelSheet data={dataSet2} name="Leaves">
-                  <ExcelColumn label="Name" value="name" />
-                  <ExcelColumn label="Total Leaves" value="total" />
-                  <ExcelColumn label="Remaining Leaves" value="remaining" />
-                </ExcelSheet> */}
-              </ExcelFile>
-              {/* <CSVLink
-                className="bg-white hover:bg-gray-100 text-gray-800 font-semibold text-sm py-2 px-2 rounded shadow"
-                data={exportData}
-                filename={'Export_Contact_Tracing_' + format(new Date(), 'yyyy-MM-ddHH:mm')}
-              >
-                Export
-              </CSVLink> */}
+              </ExcelFile>}
+
             </div>
           </div>
           <div>
@@ -651,8 +581,8 @@ const Dashboard = (props) => {
                     pageSize: 50,
                   }}
                   data={items
-                    .filter((item) => item.archived != 1)
-                    .filter((item) => indexChecked ? item.case_indexId == 0 : item)
+                    .filter((item) => item.archived !== 1)
+                    .filter((item) => indexChecked ? item.case_indexId === 0 : item)
                     .filter((item) => item.case_name.toLowerCase().includes(filterText))
                     .filter((item) => filters && filters.filterDates?.length > 1 ? Date.parse(item.dateAdded) < Date.parse(filters.filterDates[1]) && Date.parse(item.dateAdded) > Date.parse(filters.filterDates[0]) : item)
                   }
@@ -665,7 +595,7 @@ const Dashboard = (props) => {
             <CaseForm
               editing={Object.entries(caseInfo).length > 0 ? true : false}
               caseData={caseInfo}
-              patients={items.filter((item) => item.archived != 1)}
+              patients={items.filter((item) => item.archived !== 1)}
               onAdd={(data) => handleAddItem(data)}
               onUpdate={((data) => handleUpdateItem(data))}
               // onCancel={handleToggleModal}
