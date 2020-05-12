@@ -272,20 +272,33 @@ const Contacts = (props) => {
     },
     {
       Header: "Name",
-      accessor: "case_name",
-      // width: 200,
-      filterMethod: (filter, row) =>
-        row[filter.id].startsWith(filter.value) &&
-        row[filter.id].endsWith(filter.value)
+      // accessor: "case_name",
+      id: "name",
+      // accessor: d => <div className='text-left p-2'><i className='fas fa-exclamation-triangle text-red-500 p-2'></i>{d.case_name.trim().split(' ').reverse().join(', ')}</div>,
+      Cell: (row, data) => {
+        const caseName = row.row.original.case_name.trim().split(' ').reverse().join(', ')
+        const { isDuplicate } = row.row.original
+        return (
+          <div className={'text-left p-2 ' + (isDuplicate ? 'tooltip' : '')}>
+            {isDuplicate && <>
+              <i className='fas fa-exclamation-triangle text-red-400 p-3'></i>
+              <span className='relative bottom-10 tooltip-text bg-red-300 p-3 -mt-6 -ml-6 rounded'>Possible duplicate</span>
+            </>
+            }{caseName}
+          </div>
+        )
+
+      },
+
     },
     {
       Header: "Symptoms",
       accessor: "case_symptoms",
       // Cell: (row, data) => <ul>{row.row.original.case_symptoms.map(item => <li>{item.label},</li>)}</ul>,
       Cell: (row, data) => { return (row.row.original.case_symptoms.length > 0 ? <ul>{row.row.original.case_symptoms.map((item, index) => <li key={index}>{item.label},</li>)}</ul> : <span></span>) },
-      filterMethod: (filter, row) =>
-        row[filter.id].startsWith(filter.value) &&
-        row[filter.id].endsWith(filter.value)
+      // filterMethod: (filter, row) =>
+      //   row[filter.id].startsWith(filter.value) &&
+      //   row[filter.id].endsWith(filter.value)
     },
     // {
     //   Header: "Home #",
@@ -299,9 +312,9 @@ const Contacts = (props) => {
       Header: "Mobile #",
       accessor: "case_mobile_number",
       // width: 200,
-      filterMethod: (filter, row) =>
-        row[filter.id].startsWith(filter.value) &&
-        row[filter.id].endsWith(filter.value)
+      // filterMethod: (filter, row) =>
+      //   row[filter.id].startsWith(filter.value) &&
+      //   row[filter.id].endsWith(filter.value)
     },
     {
       Header: "Visited",
@@ -316,9 +329,9 @@ const Contacts = (props) => {
           row.row.original.case_country && row.row.original.case_country.length > 0 ? <ul>{row.row.original.case_country.map((item, index) => <li key={index}>{item.label},</li>)}</ul> : <span></span>)
       },
       // width: 200,
-      filterMethod: (filter, row) =>
-        row[filter.id].startsWith(filter.value) &&
-        row[filter.id].endsWith(filter.value)
+      // filterMethod: (filter, row) =>
+      //   row[filter.id].startsWith(filter.value) &&
+      //   row[filter.id].endsWith(filter.value)
     },
     {
       Header: "Age",
