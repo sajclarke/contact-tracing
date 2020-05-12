@@ -186,9 +186,11 @@ const CaseForm = (props) => {
 
                 //TODO: Check if there are any duplicates (by matching on name)
                 const db = firebase.firestore();
-                const data = await db.collection('cases').where('case_name', '==', values.case_name.trim()).get();
+                // const data = await db.collection('cases').where('case_name', '==', values.case_name.trim()).get();
+                // const data = await db.collection('cases').orderBy('case_name').startAt(values.case_name.trim()).endAt(values.case_name.trim() + '\uf8ff').get();
+                const duplicates = props.patients.filter((elem) => elem.case_name.toLowerCase() === values.case_name.toLowerCase().trim())
                 // const duplicates = data.docs.map(doc => ({ case_name: doc.data().case_name, birthdate: doc.data().case_birthdate, case_age: doc.data().case_age, id: doc.id }))
-                const duplicates = data.docs.map(doc => ({ ...doc.data(), id: doc.id }))
+                // const duplicates = data.docs.map(doc => ({ ...doc.data(), id: doc.id }))
                 console.log(duplicates.filter(item => item.archived !== 1))
                 // return;
                 if (duplicates.length > 0) {

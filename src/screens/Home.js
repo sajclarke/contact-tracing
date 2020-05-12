@@ -308,7 +308,7 @@ const Dashboard = (props) => {
             <div className={'text-left p-2 ' + (isDuplicate ? 'tooltip' : '')}>
               {isDuplicate && <>
                 <i className='fas fa-exclamation-triangle text-red-400 p-3'></i>
-                <span className='relative tooltip-text bg-red-300 p-3 -mt-6 -ml-6 rounded'>Possible duplicate</span>
+                <span className='relative bottom-10 tooltip-text bg-red-300 p-3 -mt-6 -ml-6 rounded'>Possible duplicate</span>
               </>
               }{caseName}
             </div>
