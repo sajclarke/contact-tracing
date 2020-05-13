@@ -298,7 +298,7 @@ const Dashboard = (props) => {
       },
       {
         Header: "Name",
-        // accessor: "case_name",
+        accessor: "case_name",
         id: "name",
         // accessor: d => <div className='text-left p-2'><i className='fas fa-exclamation-triangle text-red-500 p-2'></i>{d.case_name.trim().split(' ').reverse().join(', ')}</div>,
         Cell: (row, data) => {
