@@ -163,10 +163,20 @@ const CaseForm = (props) => {
     const handleChange = e => {
         let { name, value } = e.target
 
-        setValues({
-            ...values,
-            [name]: value
-        });
+        if (name === 'case_tracing_ended') { //Handle the checkbox
+            // console.log(e.target.checked)
+            setValues({
+                ...values,
+                [name]: e.target.checked
+            });
+
+        } else {//Handle the regular form fields
+            setValues({
+                ...values,
+                [name]: value
+            });
+        }
+
         //TODO:Add input masking on the telephone numbers
         validate();
     }
@@ -227,43 +237,13 @@ const CaseForm = (props) => {
 
     }
 
-    // const handleDeceasedChecked = () => {
-    //     console.log(indexChecked)
-    //     toggleIndexChecked(!indexChecked)
-    //     console.log(indexChecked)
-    //     if (!indexChecked) {
-    //         console.log('checked')
-    //         // setItems(items.filter((item) => item.case_indexId === 0))
-    //     } else {
-    //         // setItems(items)
-    //     }
 
-
-    // }
-    // console.log(values)
-    // console.log(patientOptions)
 
     // const patientList = [{ label: "No", value: 0 }, ...patientOptions];
     return (
 
         <>
-            {/* {formSuccess && (
-                <div class="bg-teal-100 border-t-1 border-teal-500 rounded-b text-teal-900 px-4 py-3 mb-3 shadow-md" role="alert">
-                    <div class="flex">
-                        <div class="py-1"><svg class="fill-current h-6 w-6 text-teal-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M2.93 17.07A10 10 0 1 1 17.07 2.93 10 10 0 0 1 2.93 17.07zm12.73-1.41A8 8 0 1 0 4.34 4.34a8 8 0 0 0 11.32 11.32zM9 11V9h2v6H9v-4zm0-6h2v2H9V5z" /></svg></div>
-                        <div>
-                            <p class="font-bold">Success!</p>
-                            <p class="text-sm">{formSuccess}</p>
-                        </div>
-                    </div>
-                </div>
-            )} */}
-            {/* {formError && (
-                <div class="w-100 m-3 bg-red-100 border border-red-400 text-red-700 px-4 py-3 mb-3 rounded relative" role="alert">
-                    <strong class="font-bold">Error!</strong>
-                    <span class="block sm:inline"> {formError}</span>
-                </div>
-            )} */}
+
             <div className='text-left'>
                 <form className="w-full max-w-lg">
                     <div className="flex flex-wrap -mx-3 mb-6">
@@ -336,7 +316,14 @@ const CaseForm = (props) => {
                             {errors.case_address && (<p className="text-red-500 text-xs italic">{errors.case_address}</p>)}
                         </div>
                     </div>
-
+                    <div className="flex flex-wrap -mx-3 mb-6">
+                        <div className="px-3 content-center justify-center items-center">
+                            <label className="block text-gray-500 font-normal">
+                                <input type="checkbox" name='case_tracing_ended' checked={values.case_tracing_ended} className="leading-loose text-pink-600" onChange={e => handleChange(e)} />
+                                <span className="text-sm text-gray-600"> Did they refuse testing? </span>
+                            </label>
+                        </div>
+                    </div>
                     <div className="flex flex-wrap -mx-3 mb-6">
                         <div className="w-full px-2">
                             <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">
@@ -363,24 +350,7 @@ const CaseForm = (props) => {
 
                                     }
                                     )}
-                                // value={
-                                //     values.case_indexId ? (
-                                //         String(values.case_indexId) === String(0) ?
-                                //             { label: "No", value: 0 } :
-                                //             values.case_indexId.split(',').map(caseIndex => {
-                                //                 if (caseIndex === 0) {
-                                //                     return { label: "No", value: 0 }
-                                //                 } else {
-                                //                     console.log(caseIndex, patientOptions.find((patient) => patient.value === caseIndex))
-                                //                     return patientOptions.find((patient) => patient.value === caseIndex)
-                                //                 }
 
-                                //             }
-                                //             )
-                                //     )
-                                //         : null
-                                //     // patientOptions.filter((item) => item.value === values.case_indexId)
-                                // }
                                 onChange={value => {
                                     console.log(value);
                                     if (value && value.length > 1) {
@@ -409,6 +379,8 @@ const CaseForm = (props) => {
                                     <option>pending</option>
                                     <option>positive</option>
                                     <option>negative</option>
+                                    <option>refused testing</option>
+                                    <option>not found</option>
                                 </select>
                                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                                     <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>

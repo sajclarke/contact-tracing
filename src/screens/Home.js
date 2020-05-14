@@ -35,7 +35,7 @@ const Dashboard = (props) => {
 
   const auth = useContext(AuthContext);
   const { currentUser } = auth
-  console.log(currentUser)
+  // console.log(currentUser)
 
   const [items, setItems] = React.useState([]);
   const [filters, setFilters] = React.useState([]);
@@ -88,7 +88,7 @@ const Dashboard = (props) => {
     console.log('fetch data')
     // console.log(exportData)
     fetchData()
-  }, [])
+  }, [props])
 
   const handleToggleModal = () => {
     // fetchData()
@@ -225,15 +225,6 @@ const Dashboard = (props) => {
     } else {
       // setItems(items)
     }
-
-    // let newItems = { ...items }
-    // if (indexChecked) {
-    //   newItems = items.filter((item) => item.case_indexId === 0)
-    // }
-    // setItems(newItems)
-
-
-
   }
 
   // This is a custom filter UI for selecting
@@ -504,7 +495,7 @@ const Dashboard = (props) => {
     })
   // console.log('export data', exportData)
 
-  // console.log('filter dates', filters, items)
+  console.log('filter dates', filters, items)
 
   return (
     <>
