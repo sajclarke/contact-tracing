@@ -118,6 +118,8 @@ const CaseForm = (props) => {
         case_symptom_date: '',
         case_quarantine_location: '',
         case_quarantine_period: '',
+        case_tracing_start: '',
+        case_tracing_finish: '',
         case_isolation_center: '',
         case_birthdate: '',
         case_age: '',
@@ -163,7 +165,7 @@ const CaseForm = (props) => {
     const handleChange = e => {
         let { name, value } = e.target
 
-        if (name === 'case_tracing_ended') { //Handle the checkbox
+        if (name === 'case_notfound') { //Handle the checkbox
             // console.log(e.target.checked)
             setValues({
                 ...values,
@@ -316,14 +318,86 @@ const CaseForm = (props) => {
                             {errors.case_address && (<p className="text-red-500 text-xs italic">{errors.case_address}</p>)}
                         </div>
                     </div>
+
+
                     <div className="flex flex-wrap -mx-3 mb-6">
-                        <div className="px-3 content-center justify-center items-center">
-                            <label className="block text-gray-500 font-normal">
-                                <input type="checkbox" name='case_tracing_ended' checked={values.case_tracing_ended} className="leading-loose text-pink-600" onChange={e => handleChange(e)} />
-                                <span className="text-sm text-gray-600"> Did they refuse testing? </span>
+                        <div className="w-1/3 px-3 mb-3 md:mb-0">
+                            <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="grid-state">
+                                Tracing Start
                             </label>
+                            <div className="relative">
+                                <Flatpickr
+                                    name="case_tracing_start"
+                                    placeholder="YYYY-MM-DD"
+                                    className="block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                                    value={values.case_tracing_start}
+                                    options={{ allowInput: true }}
+                                    // options={{ maxDate: format(new Date(), 'yyyy-MM-dd') }}
+                                    // onChange={date => console.log(format(date[0], 'yyyy-MM-dd'))}
+                                    // onChange={date => console.log(
+                                    //     values
+                                    // )}
+                                    onClose={data => console.log(data)}
+                                    onValueUpdate={data => console.log(data)}
+                                    onChange={date => {
+                                        validate();
+                                        console.log(date)
+                                        setValues(prevStyle => ({
+                                            ...prevStyle,
+                                            'case_tracing_start': date.length > 0 ? format(date[0], 'yyyy-MM-dd') : ''
+                                        }));
+
+                                    }}
+                                />
+                                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                                    <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
+                                </div>
+                            </div>
+
+                            {errors.case_tracing_start && (<p className="text-red-500 text-xs italic">{errors.case_tracing_start}</p>)}
+                        </div>
+                        <div className="w-1/3 px-3 mb-3 md:mb-0">
+                            <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2" for="grid-state">
+                                Tracing Finish
+                            </label>
+                            <div className="relative">
+                                <Flatpickr
+                                    name="case_tracing_finish"
+                                    placeholder="YYYY-MM-DD"
+                                    className="block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                                    value={values.case_tracing_finish}
+                                    options={{ allowInput: true }}
+                                    onClose={data => console.log(data)}
+                                    onValueUpdate={data => console.log(data)}
+                                    onChange={date => {
+                                        validate();
+                                        console.log(date)
+                                        setValues(prevStyle => ({
+                                            ...prevStyle,
+                                            'case_tracing_finish': date.length > 0 ? format(date[0], 'yyyy-MM-dd') : ''
+                                        }));
+
+                                    }}
+                                />
+                                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                                    <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
+                                </div>
+                            </div>
+
+                            {errors.case_tracing_finish && (<p className="text-red-500 text-xs italic">{errors.case_tracing_finish}</p>)}
+                        </div>
+                        <div className="w-1/3 px-3 mb-3 md:mb-0">
+                            <div className="flex flex-wrap -mx-3 mb-6 h-full content-center justify-center items-end">
+                                <div>
+                                    <label className="flex block text-gray-500 font-normal">
+                                        <input type="checkbox" name='case_notfound' checked={values.case_notfound} className="leading-loose text-pink-600" onChange={e => handleChange(e)} />
+                                        <span className="text-md text-gray-600 px-2"> Not Found </span>
+                                    </label>
+                                </div>
+                            </div>
                         </div>
                     </div>
+
                     <div className="flex flex-wrap -mx-3 mb-6">
                         <div className="w-full px-2">
                             <label className="block uppercase tracking-wide text-gray-700 text-xs font-bold mb-2">
@@ -379,8 +453,8 @@ const CaseForm = (props) => {
                                     <option>pending</option>
                                     <option>positive</option>
                                     <option>negative</option>
-                                    <option>refused testing</option>
-                                    <option>not found</option>
+                                    {/* <option>refused testing</option>
+                                    <option>not found</option> */}
                                 </select>
                                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                                     <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
@@ -431,7 +505,7 @@ const CaseForm = (props) => {
                             {/* <input name="case_exposure_date" value={values.case_exposure_date} onChange={e => handleChange(e)} className="block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500" type="text" placeholder="YYYY-MM-DD" /> */}
                             <Flatpickr
                                 name="case_exposure_date"
-                                placeholder="YYYY-MM-DD"
+                                placeholder="YYYY-MM-DD to YYYY-MM-DD"
                                 className="block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                                 value={values.case_exposure_date}
                                 options={{ allowInput: true }}
@@ -555,7 +629,7 @@ const CaseForm = (props) => {
                                     // onChange={date => { console.log(date[0], date[1]) }}
                                     onChange={date => setValues(prevStyle => ({
                                         ...prevStyle,
-                                        'quarantine_period': date[0] && date[1] ? format(date[0], 'yyyy-MM-dd') + ' to ' + format(date[1], 'yyyy-MM-dd') : ''
+                                        'case_quarantine_period': date[0] && date[1] ? format(date[0], 'yyyy-MM-dd') + ' to ' + format(date[1], 'yyyy-MM-dd') : ''
                                     }))}
                                 />
                                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
