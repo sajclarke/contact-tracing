@@ -274,6 +274,7 @@ const Contacts = (props) => {
       Header: "Name",
       // accessor: "case_name",
       id: "name",
+      accessor: d => d.case_name.trim().split(' ').reverse().join(', '),
       // accessor: d => <div className='text-left p-2'><i className='fas fa-exclamation-triangle text-red-500 p-2'></i>{d.case_name.trim().split(' ').reverse().join(', ')}</div>,
       Cell: (row, data) => {
         const caseName = row.row.original.case_name.trim().split(' ').reverse().join(', ')
@@ -287,9 +288,7 @@ const Contacts = (props) => {
             }{caseName}
           </div>
         )
-
       },
-
     },
     {
       Header: "Symptoms",

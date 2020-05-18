@@ -306,9 +306,7 @@ const Dashboard = (props) => {
             </div>
           )
         },
-
       },
-
       {
         Header: "Symptoms",
         id: "symptoms",
