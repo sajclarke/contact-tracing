@@ -63,7 +63,7 @@ const Contacts = (props) => {
     // setOrderList([])
     console.log(caseId)
     const db = firebase.firestore();
-    await db.collection('cases').doc(caseId).get().then(async (doc) => {
+    await db.collection('cases_2021').doc(caseId).get().then(async (doc) => {
       if (doc.exists) {
 
         console.log("Document data:", doc.data());
@@ -74,14 +74,14 @@ const Contacts = (props) => {
           const indices = doc.data().case_indexId.split(',')
           console.log(indices)
           indices.map(async (index) => {
-            await db.collection('cases').doc(index).get().then(async (doc) => {
+            await db.collection('cases_2021').doc(index).get().then(async (doc) => {
               if (doc.exists) {
                 console.log(index, doc.data().case_name, doc.data().case_indexId)
                 // setIndexCase({ ...doc.data(), id: doc.id })
                 let caseInfo = { ...doc.data(), id: doc.id }
                 console.log(caseInfo)
                 if (caseInfo.case_indexId !== 0) {
-                  await db.collection('cases').doc(caseInfo.case_indexId).get().then((doc) => {
+                  await db.collection('cases_2021').doc(caseInfo.case_indexId).get().then((doc) => {
                     // doc.exists && console.log({ ...doc.data(), id: doc.id }))
                     if (doc.exists) {
                       console.log({ ...doc.data(), id: doc.id })
@@ -117,7 +117,7 @@ const Contacts = (props) => {
     });
 
     // const contactsData = await db.collection('cases').where('case_indexId', 'array-contains', caseId).get();
-    const contactsData = await db.collection('cases').get();
+    const contactsData = await db.collection('cases_2021').get();
     // console.log(caseData, contactsData)
     // console.log(data)
     console.log(contactsData.docs.map(doc => ({ ...doc.data(), id: doc.id })));
@@ -127,7 +127,7 @@ const Contacts = (props) => {
     setItems(contactList.filter((item) => item.case_indexId ? item.case_indexId.split(',').includes(caseId) : false))
 
 
-    const patientsData = await db.collection('cases').get();
+    const patientsData = await db.collection('cases_2021').get();
     // console.log(caseData, contactsData)
     // console.log(data)
     // const patientsList = patientData.docs.map(doc => ({ ...doc.data(), id: doc.id }))
@@ -172,7 +172,7 @@ const Contacts = (props) => {
     if (caseObj) {
       // await db.collection("customers").doc(currentUser.uid).collection('cart').add({ name: newItem, quantity: 1 });
       try {
-        await db.collection("cases").doc(newItemID)
+        await db.collection("cases_2021").doc(newItemID)
           .set({
             ...caseObj,
             author: currentUser.email,
@@ -184,7 +184,7 @@ const Contacts = (props) => {
         console.error(error)
         // setFormError('Sorry but we do not recognize that email/password combination. Please try again')
       }
-      // await db.collection("cases").doc(newItemID).set({ ...caseObj, case_indexId: caseId, case_status: 'pending', dateAdded: format(new Date(), 'yyyy-MM-dd HH:mm') });
+      // await db.collection("cases_2021").doc(newItemID).set({ ...caseObj, case_indexId: caseId, case_status: 'pending', dateAdded: format(new Date(), 'yyyy-MM-dd HH:mm') });
       // setItems([...items, { id: newItemID, name: newItem, quantity: 1 }])
     }
 
@@ -207,7 +207,7 @@ const Contacts = (props) => {
       caseObj.dateUpdated = format(new Date(), 'yyyy-MM-dd HH:mm')
       try {
         // await db.collection("customers").doc(currentUser.uid).collection('cart').add({ name: newItem, quantity: 1 });
-        await db.collection("cases").doc(caseObj.id).update(caseObj);
+        await db.collection("cases_2021").doc(caseObj.id).update(caseObj);
         // setItems([...items, { id: newItemID, name: newItem, quantity: 1 }])
       } catch (error) {
         // alert(error);
@@ -238,7 +238,7 @@ const Contacts = (props) => {
         if (value) {
           try {
             // await db.collection("customers").doc(currentUser.uid).collection('cart').add({ name: newItem, quantity: 1 });
-            await db.collection("cases").doc(caseObj.id).update({ archived: 1 });
+            await db.collection("cases_2021").doc(caseObj.id).update({ archived: 1 });
             toggleModal(!isModalOpen)
             fetchData(caseId)
           } catch (error) {

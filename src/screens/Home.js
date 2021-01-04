@@ -78,7 +78,7 @@ const Dashboard = (props) => {
 
     // setOrderList([])
     const db = firebase.firestore();
-    const data = await db.collection('cases').orderBy('dateAdded', 'desc').get();
+    const data = await db.collection('cases_2021').orderBy('dateAdded', 'desc').get();
     // console.log(data)
     setItems(data.docs.map(doc => ({ ...doc.data(), id: doc.id })));
 
@@ -104,7 +104,7 @@ const Dashboard = (props) => {
     if (caseObj) {
       // await db.collection("customers").doc(currentUser.uid).collection('cart').add({ name: newItem, quantity: 1 });
       try {
-        await db.collection("cases").doc(newItemID)
+        await db.collection("cases_2021").doc(newItemID)
           .set({
             ...caseObj,
             author: currentUser.email,
@@ -142,7 +142,7 @@ const Dashboard = (props) => {
         if (value) {
           try {
             // await db.collection("customers").doc(currentUser.uid).collection('cart').add({ name: newItem, quantity: 1 });
-            await db.collection("cases").doc(caseObj.id).update({ archived: 1 });
+            await db.collection("cases_2021").doc(caseObj.id).update({ archived: 1 });
             toggleModal(!isModalOpen)
             fetchData()
           } catch (error) {
@@ -167,7 +167,7 @@ const Dashboard = (props) => {
       caseObj.dateUpdated = format(new Date(), 'yyyy-MM-dd HH:mm')
       try {
         // await db.collection("customers").doc(currentUser.uid).collection('cart').add({ name: newItem, quantity: 1 });
-        await db.collection("cases").doc(caseObj.id).update(caseObj);
+        await db.collection("cases_2021").doc(caseObj.id).update(caseObj);
 
       } catch (error) {
         // alert(error);
@@ -281,7 +281,8 @@ const Dashboard = (props) => {
       {
         Header: "Date",
         accessor: "dateAdded",
-        Cell: (row, data) => (<div className='p-1'>{format(new Date(row.row.original.dateAdded), 'PPpp')}</div>),
+        // Cell: (row, data) => (<div className='p-1'>{format(new Date(row.row.original.dateAdded), 'PPpp')}</div>),
+        Cell: (row, data) => (<div className='p-1'>{row.row.original.dateAdded}</div>),
         disableFilters: true,
         filterMethod: (filter, row) =>
           row[filter.id].startsWith(filter.value) &&
@@ -310,7 +311,7 @@ const Dashboard = (props) => {
       {
         Header: "Symptoms",
         id: "symptoms",
-        accessor: d => d.case_symptoms.map((item => item.label)).join(', '),
+        accessor: d => d.case_symptoms?.map((item => item.label)).join(', '),
         // accessor: "case_symptoms",
         // disableFilters: true,
         // Cell: (row, data) => <ul>{row.row.original.case_symptoms.map(item => <li>{item.label},</li>)}</ul>,
@@ -474,7 +475,7 @@ const Dashboard = (props) => {
               // console.log(caseIndex)
               // caseIndex.case_indexId.join(',')
               // console.log(cases.filter((elem) => elem.id === caseIndex))
-              return (cases.filter((elem) => elem.id === caseIndex)[0].case_name)
+              return (cases.filter((elem) => elem.id === caseIndex)[0]?.case_name)
             }
 
             )

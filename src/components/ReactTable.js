@@ -63,10 +63,6 @@ export default function Table({ title, columns, data, fixed, initialState }) {
         usePagination
     );
 
-
-
-
-
     // Render the UI for your table
     return (
         <>
